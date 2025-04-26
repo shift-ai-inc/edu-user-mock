@@ -18,14 +18,11 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import {
   BarChart,
   XAxis,
   YAxis,
-  Tooltip,
-  Legend,
   CartesianGrid,
   Bar,
   ResponsiveContainer,
@@ -75,33 +72,71 @@ interface AssessmentResult {
 
 // --- Mock Data Generation ---
 const generateMockResult = (id: number): AssessmentResult => {
-  const categories = ["論理思考", "コミュニケーション", "問題解決", "協調性", "リーダーシップ"];
-  const scores: CategoryScore[] = categories.map(cat => ({
+  const categories = [
+    "論理思考",
+    "コミュニケーション",
+    "問題解決",
+    "協調性",
+    "リーダーシップ",
+  ];
+  const scores: CategoryScore[] = categories.map((cat) => ({
     category: cat,
     score: Math.floor(Math.random() * 61) + 40, // 40-100
     average: Math.floor(Math.random() * 21) + 55, // 55-75
     previous: Math.floor(Math.random() * 41) + 45, // 45-85
   }));
 
-  const overall = Math.round(scores.reduce((sum, s) => sum + s.score, 0) / scores.length);
-  const strengths = scores.filter(s => s.score >= 75).map(s => s.category);
-  const weaknesses = scores.filter(s => s.score < 60).map(s => s.category);
+  const overall = Math.round(
+    scores.reduce((sum, s) => sum + s.score, 0) / scores.length
+  );
+  const strengths = scores.filter((s) => s.score >= 75).map((s) => s.category);
+  const weaknesses = scores.filter((s) => s.score < 60).map((s) => s.category);
 
   return {
     assessmentId: id,
     assessmentTitle: `総合スキルアセスメント (ID: ${id})`,
     completedDate: new Date().toLocaleDateString("ja-JP"),
     overallScore: overall,
-    summary: `全体スコアは ${overall} 点です。${strengths.length > 0 ? strengths.join('、') + 'に強みが見られます。' : ''}${weaknesses.length > 0 ? weaknesses.join('、') + 'の領域で改善の余地があります。' : ''}`,
+    summary: `全体スコアは ${overall} 点です。${
+      strengths.length > 0 ? strengths.join("、") + "に強みが見られます。" : ""
+    }${
+      weaknesses.length > 0
+        ? weaknesses.join("、") + "の領域で改善の余地があります。"
+        : ""
+    }`,
     categoryScores: scores,
-    strengths: strengths.length > 0 ? strengths : ["特筆すべき強みはありません"],
-    weaknesses: weaknesses.length > 0 ? weaknesses : ["特筆すべき弱みはありません"],
+    strengths:
+      strengths.length > 0 ? strengths : ["特筆すべき強みはありません"],
+    weaknesses:
+      weaknesses.length > 0 ? weaknesses : ["特筆すべき弱みはありません"],
     recommendations: [
-      { title: "論理思考力向上のためのオンラインコース", description: "データ分析とクリティカルシンキングを強化します。", link: "#" },
-      { title: "効果的なコミュニケーション研修", description: "プレゼンテーションと対人スキルを向上させます。", link: "#" },
-      ...(weaknesses.includes("問題解決") ? [{ title: "問題解決ワークショップ", description: "実践的なケーススタディを通じて解決能力を養います。", link: "#" }] : []),
+      {
+        title: "論理思考力向上のためのオンラインコース",
+        description: "データ分析とクリティカルシンキングを強化します。",
+        link: "#",
+      },
+      {
+        title: "効果的なコミュニケーション研修",
+        description: "プレゼンテーションと対人スキルを向上させます。",
+        link: "#",
+      },
+      ...(weaknesses.includes("問題解決")
+        ? [
+            {
+              title: "問題解決ワークショップ",
+              description: "実践的なケーススタディを通じて解決能力を養います。",
+              link: "#",
+            },
+          ]
+        : []),
     ],
-    detailedFeedback: `今回の${id === 101 ? '総合スキルアセスメント' : 'アセスメント'}では、あなたの多面的な能力が評価されました。特に${strengths.join('と')}の分野で高いポテンシャルが示されています。一方で、${weaknesses.join('や')}については、さらなる学習と実践を通じて伸ばしていくことが期待されます。推奨されるリソースを活用し、継続的なスキルアップを目指しましょう。`,
+    detailedFeedback: `今回の${
+      id === 101 ? "総合スキルアセスメント" : "アセスメント"
+    }では、あなたの多面的な能力が評価されました。特に${strengths.join(
+      "と"
+    )}の分野で高いポテンシャルが示されています。一方で、${weaknesses.join(
+      "や"
+    )}については、さらなる学習と実践を通じて伸ばしていくことが期待されます。推奨されるリソースを活用し、継続的なスキルアップを目指しましょう。`,
   };
 };
 
@@ -111,7 +146,6 @@ const categoryChartConfig = {
   average: { label: "業界平均", color: "hsl(var(--chart-2))" },
   previous: { label: "前回スコア", color: "hsl(var(--chart-3))" },
 } satisfies ChartConfig;
-
 
 export default function AssessmentResults() {
   const { id } = useParams<{ id: string }>();
@@ -126,15 +160,14 @@ export default function AssessmentResults() {
       setLoading(true);
       try {
         // Simulate API call delay
-        await new Promise(resolve => setTimeout(resolve, 500));
+        await new Promise((resolve) => setTimeout(resolve, 500));
 
         const assessmentId = parseInt(id || "0", 10);
         if (isNaN(assessmentId) || assessmentId <= 0) {
-           throw new Error("無効なアセスメントIDです。");
+          throw new Error("無効なアセスメントIDです。");
         }
         const mockResult = generateMockResult(assessmentId);
         setResult(mockResult);
-
       } catch (error) {
         console.error("アセスメント結果の取得に失敗しました", error);
         toast({
@@ -159,9 +192,10 @@ export default function AssessmentResults() {
 
   // PDF download handler (via print dialog)
   const handleDownloadPdf = () => {
-     toast({
+    toast({
       title: "PDFとして保存",
-      description: "印刷ダイアログが表示されます。「PDFとして保存」を選択してください。",
+      description:
+        "印刷ダイアログが表示されます。「PDFとして保存」を選択してください。",
     });
     window.print();
   };
@@ -171,7 +205,9 @@ export default function AssessmentResults() {
     return (
       <div className="flex flex-col items-center justify-center min-h-[calc(100vh-4rem)] p-6">
         <Loader2 className="h-10 w-10 animate-spin text-primary mb-4" />
-        <p className="text-lg text-muted-foreground">結果を読み込んでいます...</p>
+        <p className="text-lg text-muted-foreground">
+          結果を読み込んでいます...
+        </p>
       </div>
     );
   }
@@ -180,18 +216,20 @@ export default function AssessmentResults() {
   if (!result) {
     return (
       <div className="p-6 max-w-4xl mx-auto text-center">
-         <Card>
-            <CardHeader>
-                <CardTitle>結果が見つかりません</CardTitle>
-                <CardDescription>指定されたアセスメントの結果が見つかりませんでした。</CardDescription>
-            </CardHeader>
-            <CardFooter className="justify-center">
-                 <Button variant="outline" onClick={() => navigate("/assessments")}>
-                    <ArrowLeft className="mr-2 h-4 w-4" />
-                    アセスメント一覧に戻る
-                </Button>
-            </CardFooter>
-         </Card>
+        <Card>
+          <CardHeader>
+            <CardTitle>結果が見つかりません</CardTitle>
+            <CardDescription>
+              指定されたアセスメントの結果が見つかりませんでした。
+            </CardDescription>
+          </CardHeader>
+          <CardFooter className="justify-center">
+            <Button variant="outline" onClick={() => navigate("/assessments")}>
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              アセスメント一覧に戻る
+            </Button>
+          </CardFooter>
+        </Card>
       </div>
     );
   }
@@ -202,11 +240,18 @@ export default function AssessmentResults() {
       {/* Header and Action Buttons */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6 print:hidden">
         <div>
-          <Button variant="outline" size="sm" onClick={() => navigate("/assessments")} className="mb-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => navigate("/assessments")}
+            className="mb-2"
+          >
             <ArrowLeft className="mr-2 h-4 w-4" />
             一覧に戻る
           </Button>
-          <h1 className="text-3xl font-bold">{result.assessmentTitle} - 結果</h1>
+          <h1 className="text-3xl font-bold">
+            {result.assessmentTitle} - 結果
+          </h1>
           <p className="text-muted-foreground">
             完了日: {result.completedDate}
           </p>
@@ -233,9 +278,14 @@ export default function AssessmentResults() {
         </CardHeader>
         <CardContent className="flex flex-col md:flex-row items-center gap-6">
           <div className="flex-shrink-0 text-center">
-            <p className="text-6xl font-bold text-primary">{result.overallScore}</p>
+            <p className="text-6xl font-bold text-primary">
+              {result.overallScore}
+            </p>
             <p className="text-muted-foreground">Overall Score</p>
-            <Progress value={result.overallScore} className="w-32 h-2 mt-2 mx-auto" />
+            <Progress
+              value={result.overallScore}
+              className="w-32 h-2 mt-2 mx-auto"
+            />
           </div>
           <p className="text-muted-foreground flex-grow">{result.summary}</p>
         </CardContent>
@@ -250,9 +300,15 @@ export default function AssessmentResults() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <ChartContainer config={categoryChartConfig} className="h-[350px] w-full">
+          <ChartContainer
+            config={categoryChartConfig}
+            className="h-[350px] w-full"
+          >
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={result.categoryScores} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
+              <BarChart
+                data={result.categoryScores}
+                margin={{ top: 5, right: 20, left: 0, bottom: 5 }}
+              >
                 <CartesianGrid strokeDasharray="3 3" vertical={false} />
                 <XAxis
                   dataKey="category"
@@ -265,17 +321,32 @@ export default function AssessmentResults() {
                   cursor={false}
                   content={<ChartTooltipContent indicator="dot" />}
                 />
-                 <ChartLegend content={<ChartLegendContent />} />
-                <Bar dataKey="score" fill="var(--color-score)" radius={4} barSize={20} />
-                <Bar dataKey="average" fill="var(--color-average)" radius={4} barSize={20} />
-                <Bar dataKey="previous" fill="var(--color-previous)" radius={4} barSize={20} />
+                <ChartLegend content={<ChartLegendContent />} />
+                <Bar
+                  dataKey="score"
+                  fill="var(--color-score)"
+                  radius={4}
+                  barSize={20}
+                />
+                <Bar
+                  dataKey="average"
+                  fill="var(--color-average)"
+                  radius={4}
+                  barSize={20}
+                />
+                <Bar
+                  dataKey="previous"
+                  fill="var(--color-previous)"
+                  radius={4}
+                  barSize={20}
+                />
               </BarChart>
             </ResponsiveContainer>
           </ChartContainer>
         </CardContent>
       </Card>
 
-       {/* Strengths and Weaknesses */}
+      {/* Strengths and Weaknesses */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <Card className="print:shadow-none print:border-none">
           <CardHeader>
@@ -326,7 +397,9 @@ export default function AssessmentResults() {
               <TableRow>
                 <TableHead>リソース名</TableHead>
                 <TableHead>説明</TableHead>
-                <TableHead className="text-right print:hidden">リンク</TableHead>
+                <TableHead className="text-right print:hidden">
+                  リンク
+                </TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -337,7 +410,11 @@ export default function AssessmentResults() {
                   <TableCell className="text-right print:hidden">
                     {rec.link ? (
                       <Button variant="link" size="sm" asChild>
-                        <a href={rec.link} target="_blank" rel="noopener noreferrer">
+                        <a
+                          href={rec.link}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
                           詳細を見る
                         </a>
                       </Button>
@@ -384,7 +461,6 @@ export default function AssessmentResults() {
           </Button>
         </CardContent>
       </Card>
-
     </div>
   );
 }

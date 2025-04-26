@@ -1,14 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import {
   Table,
   TableBody,
@@ -22,15 +15,12 @@ import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import {
   Search,
-  Filter,
   Play,
   RotateCcw, // 再開アイコン
-  Eye,
   Clock,
   ListChecks, // 質問数アイコン
   HelpCircle,
   ArrowUpDown,
-  Plus,
   FileText, // アセスメントアイコン
 } from "lucide-react";
 
@@ -60,13 +50,13 @@ interface SavedAssessmentData {
   status?: string; // 完了ステータスなど（オプション）
 }
 
-
 // モックのアセスメントリストデータ (修正済み)
 const mockAssessmentList: AssessmentListItem[] = [
   {
     id: 101, // Assessment.tsx のモックデータと合わせる
     title: "総合スキルアセスメント",
-    description: "論理思考、コミュニケーション、問題解決能力などを総合的に評価します。",
+    description:
+      "論理思考、コミュニケーション、問題解決能力などを総合的に評価します。",
     status: "available", // 初期状態
     estimatedTime: "約10分", // Assessment.tsx と合わせる
     questionCount: 10, // Assessment.tsx と合わせる
@@ -124,40 +114,53 @@ export default function AssessmentList() {
 
               // より厳密なチェック
               if (
-                  parsed &&
-                  parsed.assessmentId === assessment.id && // IDが一致するか
-                  typeof parsed.currentQuestionIndex === 'number' && // 必須フィールドが存在するか
-                  Array.isArray(parsed.questionOrder) // 必須フィールドが存在するか
-                 )
-              {
+                parsed &&
+                parsed.assessmentId === assessment.id && // IDが一致するか
+                typeof parsed.currentQuestionIndex === "number" && // 必須フィールドが存在するか
+                Array.isArray(parsed.questionOrder) // 必須フィールドが存在するか
+              ) {
                 console.log(`Parsed data for ${storageKey} is valid:`, parsed);
                 // 完了状態も考慮（もし完了データがあれば）
-                if (parsed.status === 'completed') { // Assessment.tsx側で完了時にstatusを保存する想定
-                   currentStatus = "completed";
-                   console.log(`Status for ${assessment.id} set to 'completed' from local storage.`);
-                } else if (parsed.currentQuestionIndex >= 0) { // 途中から再開可能
-                   currentStatus = "in-progress";
-                   console.log(`Status for ${assessment.id} set to 'in-progress' from local storage.`);
+                if (parsed.status === "completed") {
+                  // Assessment.tsx側で完了時にstatusを保存する想定
+                  currentStatus = "completed";
+                  console.log(
+                    `Status for ${assessment.id} set to 'completed' from local storage.`
+                  );
+                } else if (parsed.currentQuestionIndex >= 0) {
+                  // 途中から再開可能
+                  currentStatus = "in-progress";
+                  console.log(
+                    `Status for ${assessment.id} set to 'in-progress' from local storage.`
+                  );
                 } else {
-                   // currentQuestionIndex が 0 未満など、不正な場合は available のまま
-                   console.warn(`Invalid currentQuestionIndex (${parsed.currentQuestionIndex}) in saved data for ${storageKey}. Keeping status as 'available'.`);
+                  // currentQuestionIndex が 0 未満など、不正な場合は available のまま
+                  console.warn(
+                    `Invalid currentQuestionIndex (${parsed.currentQuestionIndex}) in saved data for ${storageKey}. Keeping status as 'available'.`
+                  );
                 }
               } else {
-                 // パースは成功したが、データ構造が不正またはIDが不一致
-                 console.warn(`Invalid or mismatched saved data structure for ${storageKey}. Removing item. Parsed:`, parsed);
-                 localStorage.removeItem(storageKey);
-                 currentStatus = "available"; // 不正データなので未開始扱い
+                // パースは成功したが、データ構造が不正またはIDが不一致
+                console.warn(
+                  `Invalid or mismatched saved data structure for ${storageKey}. Removing item. Parsed:`,
+                  parsed
+                );
+                localStorage.removeItem(storageKey);
+                currentStatus = "available"; // 不正データなので未開始扱い
               }
             } catch (e) {
-              console.error(`Failed to parse saved assessment data for ${storageKey}:`, e);
+              console.error(
+                `Failed to parse saved assessment data for ${storageKey}:`,
+                e
+              );
               // パース失敗時はローカルストレージのデータを削除
               localStorage.removeItem(storageKey);
               currentStatus = "available"; // パース失敗なので未開始扱い
             }
           } else {
-             console.log(`No saved data found for ${storageKey}.`);
-             // ローカルストレージにデータがない場合、API等から完了状態を確認するロジックをここに入れる
-             // if (isAssessmentCompletedApi(assessment.id)) { currentStatus = "completed"; }
+            console.log(`No saved data found for ${storageKey}.`);
+            // ローカルストレージにデータがない場合、API等から完了状態を確認するロジックをここに入れる
+            // if (isAssessmentCompletedApi(assessment.id)) { currentStatus = "completed"; }
           }
 
           return { ...assessment, status: currentStatus };
@@ -188,15 +191,18 @@ export default function AssessmentList() {
       return (
         searchTerm === "" ||
         assessment.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        assessment.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (assessment.category && assessment.category.toLowerCase().includes(searchTerm.toLowerCase()))
+        assessment.description
+          .toLowerCase()
+          .includes(searchTerm.toLowerCase()) ||
+        (assessment.category &&
+          assessment.category.toLowerCase().includes(searchTerm.toLowerCase()))
       );
     })
     .sort((a, b) => {
       const valueA = a[sortField];
       const valueB = b[sortField];
 
-      if (typeof valueA === 'number' && typeof valueB === 'number') {
+      if (typeof valueA === "number" && typeof valueB === "number") {
         return sortDirection === "asc" ? valueA - valueB : valueB - valueA;
       } else {
         const stringA = String(valueA).toLowerCase();
@@ -210,18 +216,6 @@ export default function AssessmentList() {
   // アセスメント受験ページへ遷移
   const handleStartOrResumeAssessment = (id: number) => {
     navigate(`/assessments/take/${id}`);
-  };
-
-   // アセスメント詳細ページへ遷移（将来用）
-   const handleViewDetails = (id: number) => {
-    // navigate(`/assessments/details/${id}`); // 詳細ページへのルート
-    toast({ title: "未実装", description: `アセスメント ${id} の詳細表示は現在実装中です。` });
-  };
-
-  // 新規アセスメント作成ページへ遷移（管理者向け機能として将来用）
-  const handleCreateAssessment = () => {
-    // navigate("/assessments/create");
-     toast({ title: "未実装", description: "新規アセスメント作成機能は現在実装中です。" });
   };
 
   // ソート切り替え
@@ -328,7 +322,7 @@ export default function AssessmentList() {
                     )}
                   </Button>
                 </TableHead>
-                 <TableHead>
+                <TableHead>
                   <Button
                     variant="ghost"
                     className="p-0 h-auto font-medium hover:bg-transparent"
@@ -405,16 +399,24 @@ export default function AssessmentList() {
                       <div className="flex justify-end gap-2">
                         {assessment.status !== "completed" && ( // 完了済みは表示しない例
                           <Button
-                            variant={assessment.status === "in-progress" ? "secondary" : "default"}
+                            variant={
+                              assessment.status === "in-progress"
+                                ? "secondary"
+                                : "default"
+                            }
                             size="sm"
-                            onClick={() => handleStartOrResumeAssessment(assessment.id)}
+                            onClick={() =>
+                              handleStartOrResumeAssessment(assessment.id)
+                            }
                           >
                             {assessment.status === "in-progress" ? (
                               <RotateCcw className="h-3 w-3 mr-1" />
                             ) : (
                               <Play className="h-3 w-3 mr-1" />
                             )}
-                            {assessment.status === "in-progress" ? "再開" : "開始"}
+                            {assessment.status === "in-progress"
+                              ? "再開"
+                              : "開始"}
                           </Button>
                         )}
                         {/* 詳細ボタン（将来用） */}

@@ -5,7 +5,6 @@ import {
   useNavigate,
   useLocation,
   Navigate,
-  Link, // Import Link
 } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import {
@@ -61,7 +60,9 @@ function Layout({ children }: { children: React.ReactNode }) {
   // State to manage which dropdown is open
   const [openDropdown, setOpenDropdown] = useState<string | null>(() => {
     // Initialize open dropdown based on current path
-    const activeParent = sidebarItems.find(item => item.basePath && currentPath.startsWith(item.basePath)); // Corrected &&
+    const activeParent = sidebarItems.find(
+      (item) => item.basePath && currentPath.startsWith(item.basePath)
+    ); // Corrected &&
     return activeParent?.basePath ?? null;
   });
 
@@ -71,29 +72,42 @@ function Layout({ children }: { children: React.ReactNode }) {
   };
 
   const isActiveSubItem = (path: string) => {
-     // Exact match is the primary condition
+    // Exact match is the primary condition
     if (currentPath === path) return true;
 
     // Handle detail pages activating their corresponding list item visually
-    if (path === "/assessments/results" && currentPath.startsWith("/assessments/results/")) { // Corrected &&
-        return true; // Highlight results list when viewing a specific result detail
+    if (
+      path === "/assessments/results" &&
+      currentPath.startsWith("/assessments/results/")
+    ) {
+      // Corrected &&
+      return true; // Highlight results list when viewing a specific result detail
     }
-     if (path === "/surveys/results" && currentPath.startsWith("/surveys/results/")) { // Corrected &&
-        return true; // Highlight results list when viewing a specific result detail
+    if (
+      path === "/surveys/results" &&
+      currentPath.startsWith("/surveys/results/")
+    ) {
+      // Corrected &&
+      return true; // Highlight results list when viewing a specific result detail
     }
-     if (path === "/assessments" && currentPath.startsWith("/assessments/take/")) { // Corrected &&
-        return true; // Highlight assessment list when taking an assessment
+    if (
+      path === "/assessments" &&
+      currentPath.startsWith("/assessments/take/")
+    ) {
+      // Corrected &&
+      return true; // Highlight assessment list when taking an assessment
     }
-     if (path === "/surveys" && currentPath.startsWith("/surveys/take/")) { // Corrected &&
-        return true; // Highlight survey list when taking a survey
+    if (path === "/surveys" && currentPath.startsWith("/surveys/take/")) {
+      // Corrected &&
+      return true; // Highlight survey list when taking a survey
     }
 
     return false; // Default no match
   };
 
-
   const handleParentClick = (item: (typeof sidebarItems)[0]) => {
-    if (item.subItems && item.basePath) { // Corrected &&
+    if (item.subItems && item.basePath) {
+      // Corrected &&
       // Toggle dropdown for items with subItems
       setOpenDropdown(openDropdown === item.basePath ? null : item.basePath);
     } else if (item.path) {
@@ -108,7 +122,11 @@ function Layout({ children }: { children: React.ReactNode }) {
   const isPasswordResetPage = currentPath === "/reset-password";
   const isTakingAssessment = currentPath.startsWith("/assessments/take/");
   const isTakingSurvey = currentPath.startsWith("/surveys/take/");
-  const showSidebar = !isLoginPage && !isPasswordResetPage && !isTakingAssessment && !isTakingSurvey; // Corrected &&
+  const showSidebar =
+    !isLoginPage &&
+    !isPasswordResetPage &&
+    !isTakingAssessment &&
+    !isTakingSurvey; // Corrected &&
 
   // If it's a page without the main layout (like login), render only children
   if (isLoginPage || isPasswordResetPage) {
@@ -139,15 +157,20 @@ function Layout({ children }: { children: React.ReactNode }) {
       </header>
 
       {showSidebar && ( // Corrected &&
-         <aside className="fixed left-0 top-0 w-64 h-full bg-white shadow-lg pt-16 overflow-y-auto z-10 print:hidden">
+        <aside className="fixed left-0 top-0 w-64 h-full bg-white shadow-lg pt-16 overflow-y-auto z-10 print:hidden">
           <nav className="p-4">
             {sidebarItems.map((item, index) => (
               <div key={index} className="mb-1">
                 <Button
                   variant={
                     (item.path && currentPath === item.path) || // Corrected &&
-                    (item.basePath && isActiveParent(item.basePath) && !item.subItems) || // Corrected &&
-                    (item.basePath && isActiveParent(item.basePath) && item.subItems && openDropdown === item.basePath) // Corrected &&
+                    (item.basePath &&
+                      isActiveParent(item.basePath) &&
+                      !item.subItems) || // Corrected &&
+                    (item.basePath &&
+                      isActiveParent(item.basePath) &&
+                      item.subItems &&
+                      openDropdown === item.basePath) // Corrected &&
                       ? "secondary"
                       : "ghost"
                   }
@@ -167,32 +190,43 @@ function Layout({ children }: { children: React.ReactNode }) {
                   )}
                 </Button>
 
-                {item.subItems && openDropdown === item.basePath && ( // Corrected &&
-                  <div className="ml-6 mt-1 space-y-1 border-l-2 border-gray-100 pl-4">
-                    {item.subItems.map((subItem, subIndex) => (
-                      <Button
-                        key={subIndex}
-                        variant={
-                          isActiveSubItem(subItem.path) ? "secondary" : "ghost"
-                        }
-                        size="sm"
-                        className={`w-full justify-start text-sm ${
-                          isActiveSubItem(subItem.path) ? "bg-gray-100 font-semibold" : ""
-                        }`}
-                        onClick={() => navigate(subItem.path)}
-                      >
-                        {subItem.label}
-                      </Button>
-                    ))}
-                  </div>
-                )}
+                {item.subItems &&
+                  openDropdown === item.basePath && ( // Corrected &&
+                    <div className="ml-6 mt-1 space-y-1 border-l-2 border-gray-100 pl-4">
+                      {item.subItems.map((subItem, subIndex) => (
+                        <Button
+                          key={subIndex}
+                          variant={
+                            isActiveSubItem(subItem.path)
+                              ? "secondary"
+                              : "ghost"
+                          }
+                          size="sm"
+                          className={`w-full justify-start text-sm ${
+                            isActiveSubItem(subItem.path)
+                              ? "bg-gray-100 font-semibold"
+                              : ""
+                          }`}
+                          onClick={() => navigate(subItem.path)}
+                        >
+                          {subItem.label}
+                        </Button>
+                      ))}
+                    </div>
+                  )}
               </div>
             ))}
           </nav>
         </aside>
       )}
 
-      <main className={`pt-16 ${showSidebar ? 'pl-64' : 'pl-0'} print:pt-0 print:pl-0`}>{children}</main>
+      <main
+        className={`pt-16 ${
+          showSidebar ? "pl-64" : "pl-0"
+        } print:pt-0 print:pl-0`}
+      >
+        {children}
+      </main>
     </div>
   );
 }
@@ -219,8 +253,14 @@ function App() {
           {/* アセスメント関連 */}
           <Route path="/assessments" element={<AssessmentList />} />
           <Route path="/assessments/take/:id" element={<AssessmentPage />} />
-          <Route path="/assessments/results/:id" element={<AssessmentResults />} />
-          <Route path="/assessments/results" element={<AssessmentResultsList />} />
+          <Route
+            path="/assessments/results/:id"
+            element={<AssessmentResults />}
+          />
+          <Route
+            path="/assessments/results"
+            element={<AssessmentResultsList />}
+          />
           {/* <Route
             path="/assessments/create"
             element={<div className="p-8">アセスメント作成ページ（実装予定）</div>}

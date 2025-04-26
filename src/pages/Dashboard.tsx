@@ -7,7 +7,6 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-  CardFooter,
 } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
@@ -757,7 +756,7 @@ export default function Dashboard() {
                           fill="#8884d8"
                           dataKey="value"
                         >
-                          {surveyCategories.map((entry, index) => (
+                          {surveyCategories.map((_entry, index) => (
                             <Cell
                               key={`cell-${index}`}
                               fill={COLORS[index % COLORS.length]}
@@ -1041,7 +1040,7 @@ export default function Dashboard() {
                         fill="#8884d8"
                         dataKey="value"
                       >
-                        {surveyCategories.map((entry, index) => (
+                        {surveyCategories.map((_entry, index) => (
                           <Cell
                             key={`cell-${index}`}
                             fill={COLORS[index % COLORS.length]}

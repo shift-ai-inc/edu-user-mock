@@ -14,7 +14,6 @@ import { useToast } from "@/hooks/use-toast";
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
@@ -32,16 +31,13 @@ import {
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Textarea } from "@/components/ui/textarea";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
   ArrowRight,
   ArrowLeft,
-  Save,
   HelpCircle,
   Loader2,
   Clock,
-  Shuffle,
   CheckCircle,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -83,7 +79,7 @@ interface Assessment {
 // 回答データ型
 interface Answer {
   questionId: number;
-  value: string | string[] | number | boolean | null;
+  value: string | string[] | number | boolean | null | number[];
 }
 
 // ローカルストレージ保存用データ型
@@ -98,18 +94,32 @@ interface SavedAssessmentData {
 }
 
 // --- モックデータ生成 ---
-const generateMockQuestions = (count: number, assessmentId: number): Question[] => {
+const generateMockQuestions = (
+  count: number,
+  assessmentId: number
+): Question[] => {
   const questions: Question[] = [];
-  const categories = ["論理思考", "コミュニケーション", "問題解決", "協調性", "リーダーシップ"];
+  const categories = [
+    "論理思考",
+    "コミュニケーション",
+    "問題解決",
+    "協調性",
+    "リーダーシップ",
+  ];
   for (let i = 1; i <= count; i++) {
-    const type: QuestionType = ["single", "rating", "boolean"][i % 3] as QuestionType;
+    const type: QuestionType = ["single", "rating", "boolean"][
+      i % 3
+    ] as QuestionType;
     const category = categories[i % categories.length];
     const question: Question = {
       // Ensure unique question IDs across different assessments if needed,
       // or keep them simple like this if IDs only need to be unique within an assessment.
       id: i,
       text: `質問 ${i} (${assessmentId}): ${category}に関するあなたの考えは？ (${type})`,
-      description: type === 'rating' ? '1(全くそう思わない)から5(非常にそう思う)で評価してください。' : undefined,
+      description:
+        type === "rating"
+          ? "1(全くそう思わない)から5(非常にそう思う)で評価してください。"
+          : undefined,
       type: type,
       required: true,
       difficulty: (i % 3) + 1, // 1, 2, 3
@@ -134,7 +144,7 @@ const generateMockQuestions = (count: number, assessmentId: number): Question[] 
 
 // --- 複数のモックアセスメントデータ ---
 const allMockAssessments: Assessment[] = [
- {
+  {
     id: 101, // アセスメントID
     title: "総合スキルアセスメント",
     description:
@@ -202,17 +212,23 @@ export default function AssessmentPage() {
         // const fetchedAssessment = await fetchAssessmentApi(assessmentIdNum);
 
         // モックデータからIDで検索
-        const fetchedAssessment = allMockAssessments.find(a => a.id === assessmentIdNum);
+        const fetchedAssessment = allMockAssessments.find(
+          (a) => a.id === assessmentIdNum
+        );
 
         if (!fetchedAssessment) {
-          console.error(`Assessment with ID ${assessmentIdNum} not found in mock data.`);
+          console.error(
+            `Assessment with ID ${assessmentIdNum} not found in mock data.`
+          );
           setAssessment(null); // 見つからない場合はnullを設定
           // setLoading(false); // ローディングは解除
           // return; // ここで処理を中断
           throw new Error(`Assessment with ID ${assessmentIdNum} not found`); // エラーを投げてcatchブロックで処理
         }
 
-        console.log(`Loading assessment: ID=${fetchedAssessment.id}, Title=${fetchedAssessment.title}`);
+        console.log(
+          `Loading assessment: ID=${fetchedAssessment.id}, Title=${fetchedAssessment.title}`
+        );
         setAssessment(fetchedAssessment);
 
         // ローカルストレージから途中保存データを復元
@@ -227,35 +243,45 @@ export default function AssessmentPage() {
             setCurrentQuestionIndex(parsed.currentQuestionIndex || 0);
             setElapsedTime(parsed.elapsedTime || 0);
             // 保存された質問順序があれば復元、なければ新規にシャッフル
-            const initialQuestionOrder = parsed.questionOrder?.length > 0
-              ? parsed.questionOrder
-              : shuffleArray(fetchedAssessment.questions.map(q => q.id));
+            const initialQuestionOrder =
+              parsed.questionOrder?.length > 0
+                ? parsed.questionOrder
+                : shuffleArray(fetchedAssessment.questions.map((q) => q.id));
             setQuestionOrder(initialQuestionOrder);
             setIsSaved(true); // 保存データがあることを示す
             toast({ title: "中断した箇所から再開しました" });
           } else {
-             // IDが異なる場合は新規開始
-             console.warn(`Saved data for different assessment ID (${parsed.assessmentId}) found for key ${storageKey}. Starting fresh.`);
-             localStorage.removeItem(storageKey); // 古いデータを削除
-             setQuestionOrder(shuffleArray(fetchedAssessment.questions.map(q => q.id)));
-             setAnswers([]);
-             setCurrentQuestionIndex(0);
-             setElapsedTime(0);
+            // IDが異なる場合は新規開始
+            console.warn(
+              `Saved data for different assessment ID (${parsed.assessmentId}) found for key ${storageKey}. Starting fresh.`
+            );
+            localStorage.removeItem(storageKey); // 古いデータを削除
+            setQuestionOrder(
+              shuffleArray(fetchedAssessment.questions.map((q) => q.id))
+            );
+            setAnswers([]);
+            setCurrentQuestionIndex(0);
+            setElapsedTime(0);
           }
         } else {
           // 新規開始時は質問順序をシャッフル
-          console.log(`No saved data found for ${storageKey}. Starting new assessment.`);
-          setQuestionOrder(shuffleArray(fetchedAssessment.questions.map(q => q.id)));
+          console.log(
+            `No saved data found for ${storageKey}. Starting new assessment.`
+          );
+          setQuestionOrder(
+            shuffleArray(fetchedAssessment.questions.map((q) => q.id))
+          );
           setAnswers([]);
           setCurrentQuestionIndex(0);
           setElapsedTime(0);
         }
-
       } catch (error) {
         console.error("アセスメントの取得または初期化に失敗しました", error);
         toast({
           title: "エラー",
-          description: `アセスメントデータの読み込みに失敗しました。(${error instanceof Error ? error.message : 'Unknown error'})`,
+          description: `アセスメントデータの読み込みに失敗しました。(${
+            error instanceof Error ? error.message : "Unknown error"
+          })`,
           variant: "destructive",
         });
         setAssessment(null); // エラー時はassessmentをnullに設定
@@ -320,36 +346,61 @@ export default function AssessmentPage() {
     return () => {
       debouncedSave.cancel();
     };
-  }, [answers, currentQuestionIndex, elapsedTime, questionOrder, assessment, loading, debouncedSave]);
-
+  }, [
+    answers,
+    currentQuestionIndex,
+    elapsedTime,
+    questionOrder,
+    assessment,
+    loading,
+    debouncedSave,
+  ]);
 
   // --- 現在の質問と進捗 ---
-  const currentQuestionId = useMemo(() => questionOrder[currentQuestionIndex], [questionOrder, currentQuestionIndex]);
-  const currentQuestion = useMemo(() => assessment?.questions.find(q => q.id === currentQuestionId), [assessment, currentQuestionId]);
+  const currentQuestionId = useMemo(
+    () => questionOrder[currentQuestionIndex],
+    [questionOrder, currentQuestionIndex]
+  );
+  const currentQuestion = useMemo(
+    () => assessment?.questions.find((q) => q.id === currentQuestionId),
+    [assessment, currentQuestionId]
+  );
   const totalQuestions = useMemo(() => questionOrder.length, [questionOrder]);
-  const remainingQuestions = useMemo(() => totalQuestions > 0 ? totalQuestions - currentQuestionIndex - 1 : 0, [totalQuestions, currentQuestionIndex]);
-  const progressPercentage = useMemo(() => totalQuestions > 0 ? ((currentQuestionIndex + 1) / totalQuestions) * 100 : 0, [currentQuestionIndex, totalQuestions]);
+  const remainingQuestions = useMemo(
+    () => (totalQuestions > 0 ? totalQuestions - currentQuestionIndex - 1 : 0),
+    [totalQuestions, currentQuestionIndex]
+  );
+  const progressPercentage = useMemo(
+    () =>
+      totalQuestions > 0
+        ? ((currentQuestionIndex + 1) / totalQuestions) * 100
+        : 0,
+    [currentQuestionIndex, totalQuestions]
+  );
 
   // --- 回答処理 ---
-  const updateAnswer = useCallback((value: Answer["value"]) => {
-    if (!currentQuestion) return;
-    setIsSaved(false); // 回答変更時に保存状態をリセット
+  const updateAnswer = useCallback(
+    (value: Answer["value"]) => {
+      if (!currentQuestion) return;
+      setIsSaved(false); // 回答変更時に保存状態をリセット
 
-    setAnswers((prevAnswers) => {
-      const existingAnswerIndex = prevAnswers.findIndex(
-        (a) => a.questionId === currentQuestion.id
-      );
-      const newAnswer: Answer = { questionId: currentQuestion.id, value };
+      setAnswers((prevAnswers) => {
+        const existingAnswerIndex = prevAnswers.findIndex(
+          (a) => a.questionId === currentQuestion.id
+        );
+        const newAnswer: Answer = { questionId: currentQuestion.id, value };
 
-      if (existingAnswerIndex >= 0) {
-        const updatedAnswers = [...prevAnswers];
-        updatedAnswers[existingAnswerIndex] = newAnswer;
-        return updatedAnswers;
-      } else {
-        return [...prevAnswers, newAnswer];
-      }
-    });
-  }, [currentQuestion]); // currentQuestionが変わった時だけ再生成
+        if (existingAnswerIndex >= 0) {
+          const updatedAnswers = [...prevAnswers];
+          updatedAnswers[existingAnswerIndex] = newAnswer;
+          return updatedAnswers;
+        } else {
+          return [...prevAnswers, newAnswer];
+        }
+      });
+    },
+    [currentQuestion]
+  ); // currentQuestionが変わった時だけ再生成
 
   const getCurrentAnswer = useCallback((): Answer["value"] => {
     if (!currentQuestion) return null;
@@ -403,7 +454,10 @@ export default function AssessmentPage() {
   const handleSubmitAssessment = async () => {
     if (!assessment) return;
     setSubmitInProgress(true);
-    toast({ title: "送信中...", description: "アセスメント結果を送信しています。" });
+    toast({
+      title: "送信中...",
+      description: "アセスメント結果を送信しています。",
+    });
 
     try {
       // TODO: APIに回答データを送信する
@@ -415,7 +469,7 @@ export default function AssessmentPage() {
       });
 
       // モックの遅延
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      await new Promise((resolve) => setTimeout(resolve, 1500));
 
       // 送信成功後、ローカルストレージのデータを削除
       const storageKey = `assessment_${assessment.id}`;
@@ -428,7 +482,6 @@ export default function AssessmentPage() {
       });
       // 結果ページなどに遷移
       navigate(`/assessments/results/${assessment.id}`);
-
     } catch (error) {
       console.error("アセスメントの送信に失敗しました", error);
       toast({
@@ -474,7 +527,9 @@ export default function AssessmentPage() {
                   value={String(option.id)} // valueはoption.id
                   id={`option-${currentQuestion.id}-${option.id}`}
                 />
-                <Label htmlFor={`option-${currentQuestion.id}-${option.id}`}>{option.text}</Label>
+                <Label htmlFor={`option-${currentQuestion.id}-${option.id}`}>
+                  {option.text}
+                </Label>
               </div>
             ))}
           </RadioGroup>
@@ -482,7 +537,9 @@ export default function AssessmentPage() {
 
       case "multiple":
         // currentValueは選択された *option.id* の配列 (数値)
-        const currentValuesNum = (Array.isArray(currentValue) ? currentValue : []) as number[];
+        const currentValuesNum = (
+          Array.isArray(currentValue) ? currentValue : []
+        ) as number[];
         return (
           <div className="space-y-3">
             {shuffledOptions.map((option) => {
@@ -498,13 +555,19 @@ export default function AssessmentPage() {
                       if (checked) {
                         updatedValues = [...currentValuesNum, optionIdNum];
                       } else {
-                        updatedValues = currentValuesNum.filter(id => id !== optionIdNum);
+                        updatedValues = currentValuesNum.filter(
+                          (id) => id !== optionIdNum
+                        );
                       }
                       // 空配列も許容するように更新
-                      updateAnswer(updatedValues.length > 0 ? updatedValues : null);
+                      updateAnswer(
+                        updatedValues.length > 0 ? updatedValues : null
+                      );
                     }}
                   />
-                  <Label htmlFor={`option-${currentQuestion.id}-${option.id}`}>{option.text}</Label>
+                  <Label htmlFor={`option-${currentQuestion.id}-${option.id}`}>
+                    {option.text}
+                  </Label>
                 </div>
               );
             })}
@@ -558,11 +621,17 @@ export default function AssessmentPage() {
             className="space-y-3"
           >
             <div className="flex items-center space-x-2">
-              <RadioGroupItem value="true" id={`bool-yes-${currentQuestion.id}`} />
+              <RadioGroupItem
+                value="true"
+                id={`bool-yes-${currentQuestion.id}`}
+              />
               <Label htmlFor={`bool-yes-${currentQuestion.id}`}>はい</Label>
             </div>
             <div className="flex items-center space-x-2">
-              <RadioGroupItem value="false" id={`bool-no-${currentQuestion.id}`} />
+              <RadioGroupItem
+                value="false"
+                id={`bool-no-${currentQuestion.id}`}
+              />
               <Label htmlFor={`bool-no-${currentQuestion.id}`}>いいえ</Label>
             </div>
           </RadioGroup>
@@ -605,31 +674,32 @@ export default function AssessmentPage() {
 
   // --- assessment が確定した後に currentQuestion をチェック ---
   if (!currentQuestion) {
-     // assessment はあるが、現在のインデックスに対応する質問がない場合 (通常は起こらないはず)
-     console.error(`Current question not found for index ${currentQuestionIndex} with ID ${currentQuestionId}`);
-     return (
-       <div className="p-8">
-         <Card className="max-w-4xl mx-auto">
-           <CardHeader>
-             <CardTitle>エラー</CardTitle>
-             <CardDescription>
-               現在の質問の読み込み中にエラーが発生しました。一覧に戻ってやり直してください。
-             </CardDescription>
-           </CardHeader>
-           <CardFooter>
-             <Button onClick={() => navigate("/assessments")}>一覧に戻る</Button>
-           </CardFooter>
-         </Card>
-       </div>
-     );
-   }
-
+    // assessment はあるが、現在のインデックスに対応する質問がない場合 (通常は起こらないはず)
+    console.error(
+      `Current question not found for index ${currentQuestionIndex} with ID ${currentQuestionId}`
+    );
+    return (
+      <div className="p-8">
+        <Card className="max-w-4xl mx-auto">
+          <CardHeader>
+            <CardTitle>エラー</CardTitle>
+            <CardDescription>
+              現在の質問の読み込み中にエラーが発生しました。一覧に戻ってやり直してください。
+            </CardDescription>
+          </CardHeader>
+          <CardFooter>
+            <Button onClick={() => navigate("/assessments")}>一覧に戻る</Button>
+          </CardFooter>
+        </Card>
+      </div>
+    );
+  }
 
   // --- 時間フォーマット ---
   const formatTime = (seconds: number): string => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
-    return `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+    return `${String(mins).padStart(2, "0")}:${String(secs).padStart(2, "0")}`;
   };
 
   // --- メインレンダリング ---
@@ -650,20 +720,31 @@ export default function AssessmentPage() {
             </Button>
           </div>
           <div className="flex items-center space-x-4">
-             {/* 保存状態表示 */}
-             <div className={cn(
+            {/* 保存状態表示 */}
+            <div
+              className={cn(
                 "flex items-center text-xs px-2 py-1 rounded transition-colors duration-300",
-                isSaved ? "bg-green-100 text-green-700" : "bg-yellow-100 text-yellow-700 animate-pulse"
-             )}>
-                {isSaved ? <CheckCircle className="h-3 w-3 mr-1" /> : <Loader2 className="h-3 w-3 mr-1 animate-spin" />}
-                {isSaved ? "保存済み" : "保存中..."}
-             </div>
+                isSaved
+                  ? "bg-green-100 text-green-700"
+                  : "bg-yellow-100 text-yellow-700 animate-pulse"
+              )}
+            >
+              {isSaved ? (
+                <CheckCircle className="h-3 w-3 mr-1" />
+              ) : (
+                <Loader2 className="h-3 w-3 mr-1 animate-spin" />
+              )}
+              {isSaved ? "保存済み" : "保存中..."}
+            </div>
             <div className="flex items-center space-x-1">
               <Clock className="h-4 w-4 text-muted-foreground" />
               <span className="text-sm font-medium tabular-nums">
                 {formatTime(elapsedTime)}
               </span>
-              <span className="text-sm text-muted-foreground"> / 目安 {assessment.estimatedTime}</span>
+              <span className="text-sm text-muted-foreground">
+                {" "}
+                / 目安 {assessment.estimatedTime}
+              </span>
             </div>
           </div>
         </div>
@@ -671,7 +752,8 @@ export default function AssessmentPage() {
         <Progress value={progressPercentage} className="h-2 mb-1" />
         <div className="flex justify-between text-sm text-muted-foreground">
           <span>
-            残り {remainingQuestions} 問 (現在 {currentQuestionIndex + 1} / {totalQuestions})
+            残り {remainingQuestions} 問 (現在 {currentQuestionIndex + 1} /{" "}
+            {totalQuestions})
           </span>
           <span>{Math.round(progressPercentage)}% 完了</span>
         </div>
@@ -681,18 +763,22 @@ export default function AssessmentPage() {
       <Card className="mb-6 shadow-md">
         <CardHeader>
           <CardTitle className="text-xl flex items-center">
-            <span className="mr-2 text-primary font-semibold">Q{currentQuestionIndex + 1}.</span>
+            <span className="mr-2 text-primary font-semibold">
+              Q{currentQuestionIndex + 1}.
+            </span>
             {currentQuestion.text}
-            {currentQuestion.required && <span className="text-red-500 ml-2">*</span>}
+            {currentQuestion.required && (
+              <span className="text-red-500 ml-2">*</span>
+            )}
           </CardTitle>
           {currentQuestion.description && (
             <CardDescription>{currentQuestion.description}</CardDescription>
           )}
-           {/* デバッグ用: 質問IDと難易度表示 */}
-           {/* <p className="text-xs text-gray-400 mt-1">ID: {currentQuestion.id}, Diff: {currentQuestion.difficulty}, Cat: {currentQuestion.category}</p> */}
+          {/* デバッグ用: 質問IDと難易度表示 */}
+          {/* <p className="text-xs text-gray-400 mt-1">ID: {currentQuestion.id}, Diff: {currentQuestion.difficulty}, Cat: {currentQuestion.category}</p> */}
         </CardHeader>
         <CardContent className="min-h-[150px]">
-            {renderQuestionInput()}
+          {renderQuestionInput()}
         </CardContent>
       </Card>
 
@@ -718,10 +804,16 @@ export default function AssessmentPage() {
           <Button
             onClick={handleNext}
             disabled={submitInProgress}
-            aria-label={currentQuestionIndex === totalQuestions - 1 ? "アセスメントを提出" : "次の質問へ"}
+            aria-label={
+              currentQuestionIndex === totalQuestions - 1
+                ? "アセスメントを提出"
+                : "次の質問へ"
+            }
           >
             {currentQuestionIndex === totalQuestions - 1 ? "提出する" : "次へ"}
-            {currentQuestionIndex < totalQuestions - 1 && <ArrowRight className="ml-2 h-4 w-4" />}
+            {currentQuestionIndex < totalQuestions - 1 && (
+              <ArrowRight className="ml-2 h-4 w-4" />
+            )}
           </Button>
         </div>
       </div>
@@ -758,9 +850,16 @@ export default function AssessmentPage() {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={submitInProgress}>キャンセル</AlertDialogCancel>
-            <AlertDialogAction onClick={handleSubmitAssessment} disabled={submitInProgress}>
-              {submitInProgress && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            <AlertDialogCancel disabled={submitInProgress}>
+              キャンセル
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleSubmitAssessment}
+              disabled={submitInProgress}
+            >
+              {submitInProgress && (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              )}
               提出する
             </AlertDialogAction>
           </AlertDialogFooter>
@@ -782,24 +881,41 @@ export default function AssessmentPage() {
               <h3 className="font-semibold mb-1">操作方法</h3>
               <ul className="list-disc ml-5 space-y-1 text-muted-foreground">
                 <li>各質問に回答し、「次へ」ボタンで進んでください。</li>
-                <li>必須の質問（<span className="text-red-500 font-bold">*</span>マーク）には必ず回答してください。</li>
-                <li>回答は自動的に保存されます。ブラウザを閉じても、後で同じデバイス・ブラウザから再開できます。</li>
-                <li>「前へ」ボタンで前の質問に戻れます（適応型テストでない場合）。</li>
-                <li>画面上部のプログレスバーで進捗状況、残り質問数、経過時間を確認できます。</li>
+                <li>
+                  必須の質問（<span className="text-red-500 font-bold">*</span>
+                  マーク）には必ず回答してください。
+                </li>
+                <li>
+                  回答は自動的に保存されます。ブラウザを閉じても、後で同じデバイス・ブラウザから再開できます。
+                </li>
+                <li>
+                  「前へ」ボタンで前の質問に戻れます（適応型テストでない場合）。
+                </li>
+                <li>
+                  画面上部のプログレスバーで進捗状況、残り質問数、経過時間を確認できます。
+                </li>
                 <li>全ての質問に回答後、「提出する」ボタンが表示されます。</li>
-                <li>「中断して終了」ボタンで、いつでもアセスメントを中断できます。進捗は保存されます。</li>
+                <li>
+                  「中断して終了」ボタンで、いつでもアセスメントを中断できます。進捗は保存されます。
+                </li>
               </ul>
             </div>
             <div>
               <h3 className="font-semibold mb-1">所要時間の目安</h3>
-              <p className="text-muted-foreground">{assessment.estimatedTime}</p>
+              <p className="text-muted-foreground">
+                {assessment.estimatedTime}
+              </p>
             </div>
-             <div>
+            <div>
               <h3 className="font-semibold mb-1">注意点</h3>
               <ul className="list-disc ml-5 space-y-1 text-muted-foreground">
-                 <li>安定したインターネット接続環境での実施を推奨します。</li>
-                 <li>回答中にブラウザを閉じても進捗は保存されますが、長時間離れる場合はご注意ください。</li>
-                 <li>問題や選択肢の順番は、実施ごとにランダムに表示されることがあります。</li>
+                <li>安定したインターネット接続環境での実施を推奨します。</li>
+                <li>
+                  回答中にブラウザを閉じても進捗は保存されますが、長時間離れる場合はご注意ください。
+                </li>
+                <li>
+                  問題や選択肢の順番は、実施ごとにランダムに表示されることがあります。
+                </li>
               </ul>
             </div>
           </div>
