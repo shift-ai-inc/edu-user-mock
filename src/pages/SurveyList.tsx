@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import {
   Table,
   TableBody,
@@ -32,7 +32,7 @@ import {
   CheckCircle,
   ArrowUpDown,
   HelpCircle,
-  Plus,
+  // Plus, // Removed Plus icon as the button is being removed
 } from "lucide-react";
 
 // サーベイのステータスタイプ
@@ -151,9 +151,8 @@ export default function SurveyList() {
   const navigate = useNavigate();
   const { toast } = useToast();
 
-  // ステート
   const [surveys, setSurveys] = useState<Survey[]>([]);
-  const [, setLoading] = useState(true);
+  const [, setLoading] = useState(true); // Keep setLoading if used for async fetch
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [typeFilter, setTypeFilter] = useState<string>("all");
@@ -161,16 +160,13 @@ export default function SurveyList() {
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
   const [activeTab, setActiveTab] = useState("all");
 
-  // サーベイデータを取得
   useEffect(() => {
-    // 実際の実装ではAPIからデータを取得する
     const fetchSurveys = async () => {
       try {
-        // API呼び出しの代わりにモックデータを使用
         setTimeout(() => {
           setSurveys(mockSurveys);
           setLoading(false);
-        }, 500);
+        }, 100); // Reduced timeout for faster loading of mock data
       } catch (error) {
         console.error("サーベイの取得に失敗しました", error);
         toast({
@@ -182,27 +178,18 @@ export default function SurveyList() {
         setLoading(false);
       }
     };
-
     fetchSurveys();
   }, [toast]);
 
-  // フィルタリングおよびソート適用
   const filteredSurveys = surveys
     .filter((survey) => {
-      // 検索語でフィルタリング
       const matchesSearch =
         searchTerm === "" ||
         survey.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
         survey.description.toLowerCase().includes(searchTerm.toLowerCase());
-
-      // ステータスでフィルタリング
       const matchesStatus =
         statusFilter === "all" || survey.status === statusFilter;
-
-      // タイプでフィルタリング
       const matchesType = typeFilter === "all" || survey.type === typeFilter;
-
-      // タブでフィルタリング
       let matchesTab = true;
       if (activeTab === "pending") {
         matchesTab = survey.status === "active" && !survey.isCompleted;
@@ -212,7 +199,6 @@ export default function SurveyList() {
         matchesTab =
           survey.status === "expired" || survey.status === "completed";
       }
-
       return matchesSearch && matchesStatus && matchesType && matchesTab;
     })
     .sort((a, b) => {
@@ -236,27 +222,22 @@ export default function SurveyList() {
       }
     });
 
-  // サーベイ詳細ページへ遷移
-  const handleViewSurvey = (id: number) => {
-    navigate(`/surveys/${id}`);
+  const handleViewSurveyDetails = (id: number) => {
+    navigate(`/surveys/detail/${id}`);
   };
 
-  // サーベイ実施ページへ遷移
   const handleTakeSurvey = (id: number) => {
     navigate(`/surveys/take/${id}`);
   };
 
-  // サーベイ結果ページへ遷移
   const handleViewResults = (id: number) => {
     navigate(`/surveys/results/${id}`);
   };
 
-  // 新規サーベイ作成ページへ遷移
-  const handleCreateSurvey = () => {
-    navigate("/surveys/create");
-  };
+  // const handleCreateSurvey = () => { // Function no longer needed
+  //   navigate("/surveys/create");
+  // };
 
-  // ソート切り替え
   const toggleSort = (field: keyof Survey) => {
     if (field === sortField) {
       setSortDirection(sortDirection === "asc" ? "desc" : "asc");
@@ -266,75 +247,50 @@ export default function SurveyList() {
     }
   };
 
-  // ステータスに応じたバッジスタイルを返す関数
   const getStatusBadgeStyle = (status: SurveyStatus) => {
     switch (status) {
-      case "active":
-        return "bg-green-100 text-green-800 hover:bg-green-200";
-      case "draft":
-        return "bg-gray-100 text-gray-800 hover:bg-gray-200";
-      case "completed":
-        return "bg-blue-100 text-blue-800 hover:bg-blue-200";
-      case "expired":
-        return "bg-red-100 text-red-800 hover:bg-red-200";
+      case "active": return "bg-green-100 text-green-800 hover:bg-green-200";
+      case "draft": return "bg-gray-100 text-gray-800 hover:bg-gray-200";
+      case "completed": return "bg-blue-100 text-blue-800 hover:bg-blue-200";
+      case "expired": return "bg-red-100 text-red-800 hover:bg-red-200";
     }
   };
 
-  // ステータスラベルを返す関数
   const getStatusLabel = (status: SurveyStatus) => {
     switch (status) {
-      case "active":
-        return "実施中";
-      case "draft":
-        return "下書き";
-      case "completed":
-        return "完了";
-      case "expired":
-        return "期限切れ";
+      case "active": return "実施中";
+      case "draft": return "下書き";
+      case "completed": return "完了";
+      case "expired": return "期限切れ";
     }
   };
 
-  // タイプラベルを返す関数
   const getTypeLabel = (type: SurveyType) => {
     switch (type) {
-      case "engagement":
-        return "エンゲージメント";
-      case "feedback":
-        return "フィードバック";
-      case "satisfaction":
-        return "満足度";
-      case "assessment":
-        return "アセスメント";
-      case "other":
-        return "その他";
+      case "engagement": return "エンゲージメント";
+      case "feedback": return "フィードバック";
+      case "satisfaction": return "満足度";
+      case "assessment": return "アセスメント";
+      case "other": return "その他";
     }
   };
 
-  // 優先度に応じたバッジスタイルを返す関数
   const getPriorityBadgeStyle = (priority: "high" | "medium" | "low") => {
     switch (priority) {
-      case "high":
-        return "bg-red-100 text-red-800 hover:bg-red-200";
-      case "medium":
-        return "bg-yellow-100 text-yellow-800 hover:bg-yellow-200";
-      case "low":
-        return "bg-green-100 text-green-800 hover:bg-green-200";
+      case "high": return "bg-red-100 text-red-800 hover:bg-red-200";
+      case "medium": return "bg-yellow-100 text-yellow-800 hover:bg-yellow-200";
+      case "low": return "bg-green-100 text-green-800 hover:bg-green-200";
     }
   };
 
-  // 優先度ラベルを返す関数
   const getPriorityLabel = (priority: "high" | "medium" | "low") => {
     switch (priority) {
-      case "high":
-        return "高";
-      case "medium":
-        return "中";
-      case "low":
-        return "低";
+      case "high": return "高";
+      case "medium": return "中";
+      case "low": return "低";
     }
   };
 
-  // 日付のフォーマット
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     return date.toLocaleDateString("ja-JP", {
@@ -346,277 +302,236 @@ export default function SurveyList() {
 
   return (
     <div className="p-6 max-w-7xl mx-auto">
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6 gap-4">
-        <div>
-          <h1 className="text-2xl font-bold">サーベイ一覧</h1>
-          <p className="text-sm text-muted-foreground mt-1">
-            利用可能なサーベイと回答状況の管理
-          </p>
-        </div>
-        <Button onClick={handleCreateSurvey}>
-          <Plus className="mr-2 h-4 w-4" />
-          新規サーベイ作成
-        </Button>
-      </div>
-
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-6">
-        <TabsList>
-          <TabsTrigger value="all">すべて</TabsTrigger>
-          <TabsTrigger value="pending">
-            未回答
-            <Badge variant="secondary" className="ml-2">
-              {
-                surveys.filter((s) => s.status === "active" && !s.isCompleted)
-                  .length
-              }
-            </Badge>
-          </TabsTrigger>
-          <TabsTrigger value="completed">回答済み</TabsTrigger>
-          <TabsTrigger value="expired">期限切れ/完了</TabsTrigger>
-        </TabsList>
-      </Tabs>
-
-      <div className="flex flex-col md:flex-row gap-4 mb-6">
-        <div className="flex-1 relative">
-          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="サーベイを検索..."
-            className="pl-8"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
-        </div>
-
-        <div className="flex items-center gap-2">
-          <Filter className="h-4 w-4 text-muted-foreground" />
-          <p className="text-sm">フィルター:</p>
-        </div>
-
-        <Select value={statusFilter} onValueChange={setStatusFilter}>
-          <SelectTrigger className="w-[180px]">
-            <SelectValue placeholder="ステータス" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">すべてのステータス</SelectItem>
-            <SelectItem value="active">実施中</SelectItem>
-            <SelectItem value="draft">下書き</SelectItem>
-            <SelectItem value="completed">完了</SelectItem>
-            <SelectItem value="expired">期限切れ</SelectItem>
-          </SelectContent>
-        </Select>
-
-        <Select value={typeFilter} onValueChange={setTypeFilter}>
-          <SelectTrigger className="w-[180px]">
-            <SelectValue placeholder="種類" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">すべての種類</SelectItem>
-            <SelectItem value="engagement">エンゲージメント</SelectItem>
-            <SelectItem value="feedback">フィードバック</SelectItem>
-            <SelectItem value="satisfaction">満足度</SelectItem>
-            <SelectItem value="assessment">アセスメント</SelectItem>
-            <SelectItem value="other">その他</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
-
       <Card>
-        <CardContent className="p-0">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="w-[300px]">
-                  <Button
-                    variant="ghost"
-                    className="p-0 h-auto font-medium hover:bg-transparent"
-                    onClick={() => toggleSort("title")}
-                  >
-                    タイトル
-                    {sortField === "title" && (
-                      <ArrowUpDown className="ml-2 h-3 w-3 inline" />
-                    )}
-                  </Button>
-                </TableHead>
-                <TableHead>
-                  <Button
-                    variant="ghost"
-                    className="p-0 h-auto font-medium hover:bg-transparent"
-                    onClick={() => toggleSort("status")}
-                  >
-                    ステータス
-                    {sortField === "status" && (
-                      <ArrowUpDown className="ml-2 h-3 w-3 inline" />
-                    )}
-                  </Button>
-                </TableHead>
-                <TableHead>
-                  <Button
-                    variant="ghost"
-                    className="p-0 h-auto font-medium hover:bg-transparent"
-                    onClick={() => toggleSort("type")}
-                  >
-                    種類
-                    {sortField === "type" && (
-                      <ArrowUpDown className="ml-2 h-3 w-3 inline" />
-                    )}
-                  </Button>
-                </TableHead>
-                <TableHead>
-                  <Button
-                    variant="ghost"
-                    className="p-0 h-auto font-medium hover:bg-transparent"
-                    onClick={() => toggleSort("priority")}
-                  >
-                    優先度
-                    {sortField === "priority" && (
-                      <ArrowUpDown className="ml-2 h-3 w-3 inline" />
-                    )}
-                  </Button>
-                </TableHead>
-                <TableHead>
-                  <Button
-                    variant="ghost"
-                    className="p-0 h-auto font-medium hover:bg-transparent"
-                    onClick={() => toggleSort("expiresAt")}
-                  >
-                    期限
-                    {sortField === "expiresAt" && (
-                      <ArrowUpDown className="ml-2 h-3 w-3 inline" />
-                    )}
-                  </Button>
-                </TableHead>
-                <TableHead>
-                  <Button
-                    variant="ghost"
-                    className="p-0 h-auto font-medium hover:bg-transparent"
-                    onClick={() => toggleSort("completionRate")}
-                  >
-                    回答率
-                    {sortField === "completionRate" && (
-                      <ArrowUpDown className="ml-2 h-3 w-3 inline" />
-                    )}
-                  </Button>
-                </TableHead>
-                <TableHead className="text-right">アクション</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredSurveys.length > 0 ? (
-                filteredSurveys.map((survey) => (
-                  <TableRow key={survey.id}>
-                    <TableCell className="font-medium">
-                      <div>
-                        {survey.title}
-                        {survey.isCompleted && (
-                          <Badge
-                            variant="outline"
-                            className="ml-2 text-xs bg-green-50"
-                          >
-                            <CheckCircle className="h-3 w-3 mr-1" />
-                            回答済み
-                          </Badge>
-                        )}
-                      </div>
-                      <div className="text-sm text-muted-foreground mt-1">
-                        {survey.description}
-                      </div>
-                      <div className="flex items-center gap-2 mt-1">
-                        <Clock className="h-3 w-3 text-muted-foreground" />
-                        <span className="text-xs text-muted-foreground">
-                          {survey.estimatedTime}
-                        </span>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <Badge className={getStatusBadgeStyle(survey.status)}>
-                        {getStatusLabel(survey.status)}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>{getTypeLabel(survey.type)}</TableCell>
-                    <TableCell>
-                      <Badge className={getPriorityBadgeStyle(survey.priority)}>
-                        {getPriorityLabel(survey.priority)}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center">
-                        <Calendar className="h-3 w-3 text-muted-foreground mr-1" />
-                        <span className="text-sm">
-                          {formatDate(survey.expiresAt)}
-                        </span>
-                      </div>
-                      {new Date(survey.expiresAt) < new Date() && (
-                        <div className="flex items-center mt-1 text-red-600 text-xs">
-                          <AlertCircle className="h-3 w-3 mr-1" />
-                          期限切れ
-                        </div>
-                      )}
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center">
-                        <div className="flex-1 h-2 bg-gray-200 rounded-full overflow-hidden">
-                          <div
-                            className="h-full bg-primary"
-                            style={{ width: `${survey.completionRate}%` }}
-                          ></div>
-                        </div>
-                        <span className="ml-2 text-sm">
-                          {survey.completionRate}%
-                        </span>
-                      </div>
-                      <div className="text-xs text-muted-foreground mt-1">
-                        {survey.responsesCount} 件の回答
-                      </div>
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex justify-end gap-2">
-                        {survey.status === "active" && !survey.isCompleted ? (
-                          <Button
-                            variant="default"
-                            size="sm"
-                            onClick={() => handleTakeSurvey(survey.id)}
-                          >
-                            回答する
-                          </Button>
-                        ) : (
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleViewResults(survey.id)}
-                          >
-                            <BarChart3 className="h-3 w-3 mr-1" />
-                            結果
-                          </Button>
-                        )}
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleViewSurvey(survey.id)}
-                        >
-                          <Eye className="h-3 w-3 mr-1" />
-                          詳細
-                        </Button>
-                      </div>
-                    </TableCell>
+        <CardHeader>
+          <CardTitle className="text-2xl"> {/* Keep text-2xl for consistency with original h1 */}
+            サーベイ一覧
+          </CardTitle>
+          <CardDescription>
+            利用可能なサーベイと回答状況の管理
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-6">
+            <TabsList>
+              <TabsTrigger value="all">すべて</TabsTrigger>
+              <TabsTrigger value="pending">
+                未回答
+                <Badge variant="secondary" className="ml-2">
+                  {
+                    surveys.filter((s) => s.status === "active" && !s.isCompleted)
+                      .length
+                  }
+                </Badge>
+              </TabsTrigger>
+              <TabsTrigger value="completed">回答済み</TabsTrigger>
+              <TabsTrigger value="expired">期限切れ/完了</TabsTrigger>
+            </TabsList>
+          </Tabs>
+
+          <div className="flex flex-col md:flex-row gap-4 mb-6">
+            <div className="flex-1 relative">
+              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="サーベイを検索..."
+                className="pl-8"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+            </div>
+            <div className="flex items-center gap-2">
+              <Filter className="h-4 w-4 text-muted-foreground" />
+              <p className="text-sm">フィルター:</p>
+            </div>
+            <Select value={statusFilter} onValueChange={setStatusFilter}>
+              <SelectTrigger className="w-full md:w-[180px]">
+                <SelectValue placeholder="ステータス" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">すべてのステータス</SelectItem>
+                <SelectItem value="active">実施中</SelectItem>
+                <SelectItem value="draft">下書き</SelectItem>
+                <SelectItem value="completed">完了</SelectItem>
+                <SelectItem value="expired">期限切れ</SelectItem>
+              </SelectContent>
+            </Select>
+            <Select value={typeFilter} onValueChange={setTypeFilter}>
+              <SelectTrigger className="w-full md:w-[180px]">
+                <SelectValue placeholder="種類" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">すべての種類</SelectItem>
+                <SelectItem value="engagement">エンゲージメント</SelectItem>
+                <SelectItem value="feedback">フィードバック</SelectItem>
+                <SelectItem value="satisfaction">満足度</SelectItem>
+                <SelectItem value="assessment">アセスメント</SelectItem>
+                <SelectItem value="other">その他</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <Card> {/* Inner card for the table */}
+            <CardContent className="p-0">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="w-[300px]">
+                      <Button variant="ghost" className="p-0 h-auto font-medium hover:bg-transparent" onClick={() => toggleSort("title")}>
+                        タイトル {sortField === "title" && <ArrowUpDown className="ml-2 h-3 w-3 inline" />}
+                      </Button>
+                    </TableHead>
+                    <TableHead>
+                      <Button variant="ghost" className="p-0 h-auto font-medium hover:bg-transparent" onClick={() => toggleSort("status")}>
+                        ステータス {sortField === "status" && <ArrowUpDown className="ml-2 h-3 w-3 inline" />}
+                      </Button>
+                    </TableHead>
+                    <TableHead>
+                      <Button variant="ghost" className="p-0 h-auto font-medium hover:bg-transparent" onClick={() => toggleSort("type")}>
+                        種類 {sortField === "type" && <ArrowUpDown className="ml-2 h-3 w-3 inline" />}
+                      </Button>
+                    </TableHead>
+                    <TableHead>
+                      <Button variant="ghost" className="p-0 h-auto font-medium hover:bg-transparent" onClick={() => toggleSort("priority")}>
+                        優先度 {sortField === "priority" && <ArrowUpDown className="ml-2 h-3 w-3 inline" />}
+                      </Button>
+                    </TableHead>
+                    <TableHead>
+                      <Button variant="ghost" className="p-0 h-auto font-medium hover:bg-transparent" onClick={() => toggleSort("expiresAt")}>
+                        期限 {sortField === "expiresAt" && <ArrowUpDown className="ml-2 h-3 w-3 inline" />}
+                      </Button>
+                    </TableHead>
+                    <TableHead>
+                      <Button variant="ghost" className="p-0 h-auto font-medium hover:bg-transparent" onClick={() => toggleSort("completionRate")}>
+                        回答率 {sortField === "completionRate" && <ArrowUpDown className="ml-2 h-3 w-3 inline" />}
+                      </Button>
+                    </TableHead>
+                    <TableHead className="text-right">アクション</TableHead>
                   </TableRow>
-                ))
-              ) : (
-                <TableRow>
-                  <TableCell colSpan={7} className="text-center py-8">
-                    <div className="flex flex-col items-center justify-center">
-                      <HelpCircle className="h-8 w-8 text-muted-foreground mb-2" />
-                      <p className="text-lg font-medium">
-                        サーベイが見つかりません
-                      </p>
-                      <p className="text-sm text-muted-foreground mt-1">
-                        検索条件に一致するサーベイはありません。フィルターを変更してみてください。
-                      </p>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
+                </TableHeader>
+                <TableBody>
+                  {filteredSurveys.length > 0 ? (
+                    filteredSurveys.map((survey) => (
+                      <TableRow 
+                        key={survey.id} 
+                        onClick={() => handleViewSurveyDetails(survey.id)}
+                        className="cursor-pointer hover:bg-muted/50"
+                      >
+                        <TableCell className="font-medium">
+                          <div>
+                            {survey.title}
+                            {survey.isCompleted && (
+                              <Badge variant="outline" className="ml-2 text-xs bg-green-50 border-green-300 text-green-700">
+                                <CheckCircle className="h-3 w-3 mr-1" />
+                                回答済み
+                              </Badge>
+                            )}
+                          </div>
+                          <div className="text-sm text-muted-foreground mt-1 truncate max-w-xs">
+                            {survey.description}
+                          </div>
+                          <div className="flex items-center gap-2 mt-1">
+                            <Clock className="h-3 w-3 text-muted-foreground" />
+                            <span className="text-xs text-muted-foreground">
+                              {survey.estimatedTime}
+                            </span>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <Badge className={getStatusBadgeStyle(survey.status)}>
+                            {getStatusLabel(survey.status)}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>{getTypeLabel(survey.type)}</TableCell>
+                        <TableCell>
+                          <Badge className={getPriorityBadgeStyle(survey.priority)}>
+                            {getPriorityLabel(survey.priority)}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center">
+                            <Calendar className="h-3 w-3 text-muted-foreground mr-1" />
+                            <span className="text-sm">
+                              {formatDate(survey.expiresAt)}
+                            </span>
+                          </div>
+                          {new Date(survey.expiresAt) < new Date() && survey.status !== 'completed' && (
+                            <div className="flex items-center mt-1 text-red-600 text-xs">
+                              <AlertCircle className="h-3 w-3 mr-1" />
+                              期限切れ
+                            </div>
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center">
+                            <div className="flex-1 h-2 bg-gray-200 rounded-full overflow-hidden">
+                              <div
+                                className="h-full bg-primary"
+                                style={{ width: `${survey.completionRate}%` }}
+                              ></div>
+                            </div>
+                            <span className="ml-2 text-sm">
+                              {survey.completionRate}%
+                            </span>
+                          </div>
+                          <div className="text-xs text-muted-foreground mt-1">
+                            {survey.responsesCount} 件の回答
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <div className="flex justify-end gap-1 sm:gap-2">
+                            {survey.status === "active" && !survey.isCompleted && new Date(survey.expiresAt) >= new Date() ? (
+                              <Button
+                                variant="default"
+                                size="sm"
+                                onClick={(e) => { e.stopPropagation(); handleTakeSurvey(survey.id); }}
+                                className="text-xs px-2 h-7 sm:text-sm sm:px-3 sm:h-8"
+                              >
+                                回答する
+                              </Button>
+                            ) : (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={(e) => { e.stopPropagation(); handleViewResults(survey.id); }}
+                                disabled={survey.status === 'draft'}
+                                className="text-xs px-2 h-7 sm:text-sm sm:px-3 sm:h-8"
+                              >
+                                <BarChart3 className="h-3 w-3 sm:mr-1" />
+                                <span className="hidden sm:inline">結果</span>
+                              </Button>
+                            )}
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={(e) => { e.stopPropagation(); handleViewSurveyDetails(survey.id); }}
+                              className="text-xs px-2 h-7 sm:text-sm sm:px-3 sm:h-8"
+                            >
+                              <Eye className="h-3 w-3 sm:mr-1" />
+                              <span className="hidden sm:inline">詳細</span>
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  ) : (
+                    <TableRow>
+                      <TableCell colSpan={7} className="text-center py-8">
+                        <div className="flex flex-col items-center justify-center">
+                          <HelpCircle className="h-8 w-8 text-muted-foreground mb-2" />
+                          <p className="text-lg font-medium">
+                            サーベイが見つかりません
+                          </p>
+                          <p className="text-sm text-muted-foreground mt-1">
+                            検索条件に一致するサーベイはありません。フィルターを変更してみてください。
+                          </p>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
         </CardContent>
       </Card>
     </div>

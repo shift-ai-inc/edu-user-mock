@@ -11,41 +11,41 @@ import {
   BarChart3,
   Bell,
   User,
-  FileText, // Keep for Assessments
-  BarChart4, // Keep for Surveys
-  ChevronDown, // Icon for dropdown indicator
-  ChevronRight, // Icon for non-active dropdown
+  FileText, 
+  BarChart4, 
+  ChevronDown, 
+  ChevronRight, 
 } from "lucide-react";
-import { useState } from "react"; // Import useState for managing dropdown state
+import { useState, useEffect } from "react"; 
 import Dashboard from "@/pages/Dashboard";
 import SurveyList from "@/pages/SurveyList";
 import TakeSurvey from "@/pages/TakeSurvey";
 import SurveyResults from "@/pages/SurveyResults";
 import SurveyResultsList from "@/pages/SurveyResultsList";
+import SurveyDetailPage from "@/pages/SurveyDetailPage"; // Import Survey Detail Page
 import AssessmentPage from "@/pages/Assessment";
 import AssessmentList from "@/pages/AssessmentList";
 import AssessmentResults from "@/pages/AssessmentResults";
 import AssessmentResultsList from "@/pages/AssessmentResultsList";
-import LoginPage from "@/pages/LoginPage"; // Import Login Page
-import PasswordResetPage from "@/pages/PasswordResetPage"; // Import Password Reset Page
+import AssessmentDetailPage from "@/pages/AssessmentDetailPage"; 
+import LoginPage from "@/pages/LoginPage"; 
+import PasswordResetPage from "@/pages/PasswordResetPage"; 
 
-// Updated sidebar items structure
 const sidebarItems = [
   { icon: BarChart3, label: "ダッシュボード", path: "/" },
   {
-    icon: FileText, // Icon for Assessments
+    icon: FileText, 
     label: "アセスメント",
-    basePath: "/assessments", // Base path for highlighting parent
+    basePath: "/assessments", 
     subItems: [
       { label: "アセスメント一覧", path: "/assessments" },
-      // { label: "新規作成", path: "/assessments/create" }, // Keep commented or remove
       { label: "結果一覧", path: "/assessments/results" },
     ],
   },
   {
-    icon: BarChart4, // Icon for Surveys
+    icon: BarChart4, 
     label: "サーベイ",
-    basePath: "/surveys", // Base path for highlighting parent
+    basePath: "/surveys", 
     subItems: [
       { label: "サーベイ一覧", path: "/surveys" },
       { label: "結果一覧", path: "/surveys/results" },
@@ -57,78 +57,65 @@ function Layout({ children }: { children: React.ReactNode }) {
   const navigate = useNavigate();
   const location = useLocation();
   const currentPath = location.pathname;
-  // State to manage which dropdown is open
-  const [openDropdown, setOpenDropdown] = useState<string | null>(() => {
-    // Initialize open dropdown based on current path
+  
+  const [openDropdown, setOpenDropdown] = useState<string | null>(null);
+
+  useEffect(() => {
     const activeParent = sidebarItems.find(
       (item) => item.basePath && currentPath.startsWith(item.basePath)
-    ); // Corrected &&
-    return activeParent?.basePath ?? null;
-  });
+    );
+    setOpenDropdown(activeParent?.basePath ?? null);
+  }, [currentPath]); 
+
 
   const isActiveParent = (basePath: string | undefined) => {
-    if (!basePath) return false; // Dashboard has no basePath for subitems
+    if (!basePath) return false; 
     return currentPath.startsWith(basePath);
   };
 
   const isActiveSubItem = (path: string) => {
-    // Exact match is the primary condition
     if (currentPath === path) return true;
 
-    // Handle detail pages activating their corresponding list item visually
-    if (
-      path === "/assessments/results" &&
-      currentPath.startsWith("/assessments/results/")
-    ) {
-      // Corrected &&
-      return true; // Highlight results list when viewing a specific result detail
+    if (path === "/assessments" && (currentPath.startsWith("/assessments/take/") || currentPath.startsWith("/assessments/detail/"))) {
+      return true;
     }
-    if (
-      path === "/surveys/results" &&
-      currentPath.startsWith("/surveys/results/")
-    ) {
-      // Corrected &&
-      return true; // Highlight results list when viewing a specific result detail
+    if (path === "/assessments/results" && currentPath.startsWith("/assessments/results/")) {
+      return true; 
     }
-    if (
-      path === "/assessments" &&
-      currentPath.startsWith("/assessments/take/")
-    ) {
-      // Corrected &&
-      return true; // Highlight assessment list when taking an assessment
+    if (path === "/surveys" && (currentPath.startsWith("/surveys/take/") || currentPath.startsWith("/surveys/detail/"))) { 
+      return true; 
     }
-    if (path === "/surveys" && currentPath.startsWith("/surveys/take/")) {
-      // Corrected &&
-      return true; // Highlight survey list when taking a survey
+    if (path === "/surveys/results" && currentPath.startsWith("/surveys/results/")) {
+      return true; 
     }
 
-    return false; // Default no match
+    return false;
   };
 
   const handleParentClick = (item: (typeof sidebarItems)[0]) => {
     if (item.subItems && item.basePath) {
-      // Corrected &&
-      // Toggle dropdown for items with subItems
       setOpenDropdown(openDropdown === item.basePath ? null : item.basePath);
     } else if (item.path) {
-      // Navigate directly for items without subItems (like Dashboard)
       navigate(item.path);
-      setOpenDropdown(null); // Close any open dropdown
+      setOpenDropdown(null); 
     }
   };
 
-  // Determine if sidebar should be shown
   const isLoginPage = currentPath === "/login";
   const isPasswordResetPage = currentPath === "/reset-password";
   const isTakingAssessment = currentPath.startsWith("/assessments/take/");
   const isTakingSurvey = currentPath.startsWith("/surveys/take/");
+  const isViewingAssessmentDetail = currentPath.startsWith("/assessments/detail/");
+  const isViewingSurveyDetail = currentPath.startsWith("/surveys/detail/"); // For Survey Detail Page
+
   const showSidebar =
     !isLoginPage &&
     !isPasswordResetPage &&
     !isTakingAssessment &&
-    !isTakingSurvey; // Corrected &&
+    !isTakingSurvey &&
+    !isViewingAssessmentDetail &&
+    !isViewingSurveyDetail; // Hide sidebar on survey detail page as well
 
-  // If it's a page without the main layout (like login), render only children
   if (isLoginPage || isPasswordResetPage) {
     return <>{children}</>;
   }
@@ -144,11 +131,10 @@ function Layout({ children }: { children: React.ReactNode }) {
             <Button variant="ghost" size="icon">
               <Bell className="h-5 w-5" />
             </Button>
-            {/* Update User button to navigate to login */}
             <Button
               variant="ghost"
               size="icon"
-              onClick={() => navigate("/login")} // Navigate to login on click
+              onClick={() => navigate("/login")} 
             >
               <User className="h-5 w-5" />
             </Button>
@@ -156,21 +142,21 @@ function Layout({ children }: { children: React.ReactNode }) {
         </div>
       </header>
 
-      {showSidebar && ( // Corrected &&
+      {showSidebar && ( 
         <aside className="fixed left-0 top-0 w-64 h-full bg-white shadow-lg pt-16 overflow-y-auto z-10 print:hidden">
           <nav className="p-4">
             {sidebarItems.map((item, index) => (
               <div key={index} className="mb-1">
                 <Button
                   variant={
-                    (item.path && currentPath === item.path) || // Corrected &&
+                    (item.path && currentPath === item.path) || 
                     (item.basePath &&
                       isActiveParent(item.basePath) &&
-                      !item.subItems) || // Corrected &&
+                      !item.subItems) || 
                     (item.basePath &&
                       isActiveParent(item.basePath) &&
                       item.subItems &&
-                      openDropdown === item.basePath) // Corrected &&
+                      openDropdown === item.basePath) 
                       ? "secondary"
                       : "ghost"
                   }
@@ -179,7 +165,7 @@ function Layout({ children }: { children: React.ReactNode }) {
                 >
                   <item.icon className="mr-2 h-4 w-4" />
                   {item.label}
-                  {item.subItems && ( // Corrected &&
+                  {item.subItems && ( 
                     <span className="ml-auto">
                       {openDropdown === item.basePath ? (
                         <ChevronDown className="h-4 w-4" />
@@ -191,7 +177,7 @@ function Layout({ children }: { children: React.ReactNode }) {
                 </Button>
 
                 {item.subItems &&
-                  openDropdown === item.basePath && ( // Corrected &&
+                  openDropdown === item.basePath && ( 
                     <div className="ml-6 mt-1 space-y-1 border-l-2 border-gray-100 pl-4">
                       {item.subItems.map((subItem, subIndex) => (
                         <Button
@@ -242,9 +228,9 @@ function App() {
           {/* サーベイ関連 */}
           <Route path="/surveys" element={<SurveyList />} />
           <Route path="/surveys/take/:id" element={<TakeSurvey />} />
+          <Route path="/surveys/detail/:id" element={<SurveyDetailPage />} /> {/* New Survey Detail Route */}
           <Route path="/surveys/results/:id" element={<SurveyResults />} />
           <Route path="/surveys/results" element={<SurveyResultsList />} />
-          {/* Restored the route for /surveys/create */}
           <Route
             path="/surveys/create"
             element={<div className="p-8">サーベイ作成ページ（実装予定）</div>}
@@ -253,6 +239,7 @@ function App() {
           {/* アセスメント関連 */}
           <Route path="/assessments" element={<AssessmentList />} />
           <Route path="/assessments/take/:id" element={<AssessmentPage />} />
+          <Route path="/assessments/detail/:id" element={<AssessmentDetailPage />} /> 
           <Route
             path="/assessments/results/:id"
             element={<AssessmentResults />}
@@ -261,16 +248,12 @@ function App() {
             path="/assessments/results"
             element={<AssessmentResultsList />}
           />
-          {/* <Route
-            path="/assessments/create"
-            element={<div className="p-8">アセスメント作成ページ（実装予定）</div>}
-          /> */}
-
+          
           {/* Authentication routes */}
           <Route path="/login" element={<LoginPage />} />
           <Route path="/reset-password" element={<PasswordResetPage />} />
 
-          {/* Not Found - Redirect to Dashboard (or login if not authenticated in future) */}
+          {/* Not Found - Redirect to Dashboard */}
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </Layout>
