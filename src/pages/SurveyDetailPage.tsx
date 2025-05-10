@@ -2,11 +2,18 @@ import { useParams, useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Printer, BarChart3, CheckCircle, AlertCircle, Calendar, Clock } from "lucide-react";
+import { ArrowLeft, Printer, BarChart3, CheckCircle, AlertCircle, Clock } from "lucide-react";
 
 // Re-define types and mock data or import if they were moved to a shared location
 type SurveyStatus = "active" | "draft" | "completed" | "expired";
 type SurveyType = "engagement" | "feedback" | "satisfaction" | "assessment" | "other";
+type QuestionType = "rating" | "text" | "multiple-choice" | "yes-no"; // Added more example types
+
+interface SurveyQuestion {
+  id: string;
+  text: string;
+  type: QuestionType;
+}
 
 interface Survey {
   id: number;
@@ -21,10 +28,9 @@ interface Survey {
   priority: "high" | "medium" | "low";
   estimatedTime: string;
   isCompleted?: boolean;
-  // Potentially more details for a detail page:
-  questions?: Array<{ id: string; text: string; type: string }>; // Example
-  targetAudience?: string; // Example
-  createdBy?: string; // Example
+  questions?: SurveyQuestion[];
+  targetAudience?: string;
+  createdBy?: string;
 }
 
 const mockSurveys: Survey[] = [
@@ -42,7 +48,12 @@ const mockSurveys: Survey[] = [
     estimatedTime: "10分",
     targetAudience: "全従業員",
     createdBy: "人事部",
-    questions: [ {id: "q1", text: "現在の業務に満足していますか？", type: "rating"}, {id: "q2", text: "職場環境について改善点はありますか？", type: "text"}]
+    questions: [
+      {id: "q1", text: "現在の業務に満足していますか？", type: "rating"},
+      {id: "q2", text: "職場環境について改善点はありますか？", type: "text"},
+      {id: "q3", text: "上司とのコミュニケーションは円滑ですか？", type: "yes-no"},
+      {id: "q4", text: "キャリアパスについて明確な目標がありますか？", type: "multiple-choice"},
+    ]
   },
   {
     id: 2,
@@ -59,6 +70,10 @@ const mockSurveys: Survey[] = [
     isCompleted: true,
     targetAudience: "リモートワーク実施者",
     createdBy: "IT部門",
+    questions: [
+      {id: "q1", text: "リモートワークの頻度に満足していますか？", type: "rating"},
+      {id: "q2", text: "リモートワークで困っていることは何ですか？", type: "text"}
+    ]
   },
   {
     id: 3,
@@ -88,6 +103,10 @@ const mockSurveys: Survey[] = [
     estimatedTime: "7分",
     targetAudience: "全従業員",
     createdBy: "製品開発チーム",
+    questions: [
+      {id: "q1", text: "新機能は使いやすいですか？", type: "rating"},
+      {id: "q2", text: "新機能に関するご意見・ご要望", type: "text"}
+    ]
   },
   {
     id: 5,
@@ -122,7 +141,7 @@ const mockSurveys: Survey[] = [
 ];
 
 
-// Helper functions (copied from SurveyList or similar)
+// Helper functions
 const getStatusBadgeStyle = (status: SurveyStatus) => {
   switch (status) {
     case "active": return "bg-green-100 text-green-800";
@@ -172,6 +191,16 @@ const formatDate = (dateString: string) => {
   return date.toLocaleDateString("ja-JP", { year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit" });
 };
 
+const getQuestionTypeLabel = (type: QuestionType): string => {
+  switch (type) {
+    case "rating": return "評価尺度";
+    case "text": return "自由記述";
+    case "multiple-choice": return "多肢選択";
+    case "yes-no": return "はい/いいえ";
+    default: return type;
+  }
+};
+
 
 export default function SurveyDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -198,7 +227,7 @@ export default function SurveyDetailPage() {
     );
   }
 
-  const isExpired = new Date(survey.expiresAt) < new Date();
+  const isExpired = new Date(survey.expiresAt) < new Date() && survey.status !== 'completed';
 
   return (
     <div className="p-6 max-w-4xl mx-auto">
@@ -238,7 +267,7 @@ export default function SurveyDetailPage() {
             </div>
             <div>
               <strong>期限:</strong> {formatDate(survey.expiresAt)}
-              {isExpired && survey.status !== 'completed' && (
+              {isExpired && (
                 <span className="ml-2 text-red-600 text-xs flex items-center">
                   <AlertCircle className="h-3 w-3 mr-1" />
                   期限切れ
@@ -279,9 +308,9 @@ export default function SurveyDetailPage() {
           </CardHeader>
           <CardContent>
             <ul className="list-disc pl-5 space-y-2 text-sm">
-              {survey.questions.slice(0, 3).map((q) => ( // Display first 3 questions as example
+              {survey.questions.slice(0, 3).map((q) => (
                 <li key={q.id}>
-                  {q.text} <Badge variant="outline" className="ml-1 text-xs">{q.type}</Badge>
+                  {q.text} <Badge variant="outline" className="ml-1 text-xs">{getQuestionTypeLabel(q.type)}</Badge>
                 </li>
               ))}
               {survey.questions.length > 3 && <li>他 {survey.questions.length - 3}項目...</li>}
@@ -310,7 +339,7 @@ export default function SurveyDetailPage() {
           <Button
             variant="outline"
             onClick={() => navigate(`/surveys/results/${survey.id}`)}
-            disabled={survey.status === 'draft'}
+            disabled={survey.status === 'draft' || (survey.status === 'expired' && survey.responsesCount === 0)}
           >
             <BarChart3 className="h-4 w-4 mr-1" />
             結果を見る

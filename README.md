@@ -1,1 +1,2 @@
-https://glittering-cendol-812b2d.netlify.app/
+# edu-admin-mock
+# edu-user-mock

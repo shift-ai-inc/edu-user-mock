@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Button } from "@/components/ui/button";
+// Button import is removed as it's no longer used in the table
 import {
   Card,
   CardContent,
@@ -17,7 +17,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Eye, Loader2, AlertCircle } from "lucide-react";
+import { Loader2, AlertCircle } from "lucide-react"; // Eye icon removed
 import { useToast } from "@/hooks/use-toast";
 
 // --- Mock Data Types ---
@@ -130,12 +130,16 @@ export default function SurveyResultsList() {
                   <TableHead>最終提出日</TableHead>
                   <TableHead className="text-center">回答者数</TableHead>
                   <TableHead className="text-center">ステータス</TableHead>
-                  <TableHead className="text-right">アクション</TableHead>
+                  {/* Action column removed */}
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {results.map((result) => (
-                  <TableRow key={result.id}>
+                  <TableRow 
+                    key={result.id}
+                    onClick={() => result.status === "Completed" && handleViewResult(result.id)}
+                    className={result.status === "Completed" ? "cursor-pointer hover:bg-muted/50" : ""}
+                  >
                     <TableCell className="font-medium">{result.title}</TableCell>
                     <TableCell>{result.submittedDate}</TableCell>
                     <TableCell className="text-center">
@@ -146,22 +150,7 @@ export default function SurveyResultsList() {
                         {result.status === "Completed" ? "完了" : "実施中"}
                       </Badge>
                     </TableCell>
-                    <TableCell className="text-right">
-                      {result.status === "Completed" ? (
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleViewResult(result.id)}
-                        >
-                          <Eye className="mr-1 h-4 w-4" />
-                          結果表示
-                        </Button>
-                      ) : (
-                        <Button variant="outline" size="sm" disabled>
-                          結果表示
-                        </Button>
-                      )}
-                    </TableCell>
+                    {/* Action cell removed */}
                   </TableRow>
                 ))}
               </TableBody>

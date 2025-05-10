@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -17,7 +16,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Eye, Loader2, AlertCircle } from "lucide-react";
+import { Loader2, AlertCircle } from "lucide-react"; // Eye icon removed
 import { useToast } from "@/hooks/use-toast";
 
 // --- Mock Data Types ---
@@ -42,14 +41,6 @@ const generateMockResultsList = (count: number): AssessmentResultSummary[] => {
       status: "Completed",
     });
   }
-  // Add one pending example
-  // results.push({
-  //   id: 100 + count + 1,
-  //   title: `リーダーシップ評価`,
-  //   completedDate: "-",
-  //   overallScore: 0,
-  //   status: "Pending",
-  // });
   return results.sort((a, b) => b.id - a.id); // Sort by ID descending
 };
 
@@ -123,12 +114,16 @@ export default function AssessmentResultsList() {
                   <TableHead>完了日</TableHead>
                   <TableHead className="text-center">総合スコア</TableHead>
                   <TableHead className="text-center">ステータス</TableHead>
-                  <TableHead className="text-right">アクション</TableHead>
+                  {/* Action column removed */}
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {results.map((result) => (
-                  <TableRow key={result.id}>
+                  <TableRow 
+                    key={result.id} 
+                    onClick={() => result.status === "Completed" && handleViewResult(result.id)}
+                    className={result.status === "Completed" ? "cursor-pointer hover:bg-muted/50" : ""}
+                  >
                     <TableCell className="font-medium">{result.title}</TableCell>
                     <TableCell>{result.completedDate}</TableCell>
                     <TableCell className="text-center">
@@ -143,22 +138,7 @@ export default function AssessmentResultsList() {
                         {result.status === "Completed" ? "完了" : "保留中"}
                       </Badge>
                     </TableCell>
-                    <TableCell className="text-right">
-                      {result.status === "Completed" ? (
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleViewResult(result.id)}
-                        >
-                          <Eye className="mr-1 h-4 w-4" />
-                          詳細表示
-                        </Button>
-                      ) : (
-                        <Button variant="outline" size="sm" disabled>
-                          詳細表示
-                        </Button>
-                      )}
-                    </TableCell>
+                    {/* Action cell removed */}
                   </TableRow>
                 ))}
               </TableBody>

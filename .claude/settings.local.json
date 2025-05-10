@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm run build:*)",
+      "Bash(npm install:*)",
+      "Bash(npx tsc:*)",
+      "Bash(tsc:*)",
+      "Bash(NODE_ENV=production VITE_SKIP_TS_CHECK=true npm run build)",
+      "Bash(VITE_SKIP_TS_CHECK=true npm run build)"
+    ],
+    "deny": []
+  }
+}

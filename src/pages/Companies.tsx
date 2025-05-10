@@ -1,6 +1,6 @@
-import React, { useState, useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Button, buttonVariants } from "@/components/ui/button";
+import { buttonVariants } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -26,8 +26,8 @@ const mockCompanies = [
   { id: 12, name: "アドバンスト・マニュファクチャリング", adminCount: 25, status: "アクティブ" },
 ];
 
-// Updated Company type
-type Company = typeof mockCompanies[0];
+// Type definition for SortKey and SortDirection
+// (CompanyData type removed as it's not used in the component)
 // Updated SortKey type - removed plan, startDate, endDate, users
 type SortKey = 'name' | 'adminCount' | 'status' | null;
 type SortDirection = 'asc' | 'desc';

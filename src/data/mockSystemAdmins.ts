@@ -1,4 +1,4 @@
-import { SystemAdmin, PermissionLevel, SystemAdminStatus } from '@/types/system-admin';
+import { SystemAdmin } from '@/types/system-admin';
 
 export const mockSystemAdmins: SystemAdmin[] = [
   {

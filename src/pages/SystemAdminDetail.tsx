@@ -1,7 +1,6 @@
-import React from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { mockSystemAdmins } from '@/data/mockSystemAdmins'; // Import mock data
-import { SystemAdmin, getPermissionLevelName, getStatusName } from '@/types/system-admin'; // Import type and helpers
+import { getPermissionLevelName, getStatusName } from '@/types/system-admin'; // Import helpers
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Pencil } from 'lucide-react'; // Import Pencil icon

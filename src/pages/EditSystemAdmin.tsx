@@ -1,13 +1,12 @@
-import React, { useEffect, useState } from 'react'; // Import useState
+import { useEffect, useState } from 'react'; // Import useState
 import { useParams, useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { mockSystemAdmins } from '@/data/mockSystemAdmins';
-import { SystemAdmin, PermissionLevel, SystemAdminStatus, getPermissionLevelName } from '@/types/system-admin'; // Removed getStatusName as it's not used directly in the form render logic
+import { SystemAdmin, getPermissionLevelName } from '@/types/system-admin'; // Removed getStatusName as it's not used directly in the form render logic
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';

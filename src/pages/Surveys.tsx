@@ -3,8 +3,6 @@ import { useNavigate } from 'react-router-dom'; // Import useNavigate
 import {
   Card,
   CardContent,
-  CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
@@ -41,14 +39,11 @@ import {
   Search,
   Filter,
   Plus,
-  Mail,
   BarChart3,
-  Calendar,
   Users,
   Clock,
 } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
-import { cn } from "@/lib/utils"; // Import cn
 
 // サンプルデータ (SurveyDetail.tsx と同じものを使用)
 const surveys = [

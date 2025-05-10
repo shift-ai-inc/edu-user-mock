@@ -18,50 +18,50 @@ import {
   ChartContainer,
   ChartTooltip,
   ChartTooltipContent,
-  type ChartConfig, // Import ChartConfig type
-} from '@/components/ui/chart'; // Ensure ChartConfig is exported from chart.tsx
+  type ChartConfig,
+} from '@/components/ui/chart';
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from 'recharts';
 
-// Mock data for survey results
+// Mock data for survey results - with some translations
 const surveyData = {
   id: 'survey123',
-  title: 'Customer Satisfaction Survey',
-  description: 'Results from the Q2 customer satisfaction survey.',
+  title: '顧客満足度調査 結果',
+  description: 'Q2顧客満足度調査の結果です。',
   questions: [
     {
       id: 'q1',
-      text: 'How satisfied were you with our product?',
+      text: '当社の製品にどの程度満足されましたか？',
       type: 'multiple-choice',
       results: [
-        { answer: 'Very Satisfied', count: 150 },
-        { answer: 'Satisfied', count: 250 },
-        { answer: 'Neutral', count: 50 },
-        { answer: 'Unsatisfied', count: 30 },
-        { answer: 'Very Unsatisfied', count: 20 },
+        { answer: '非常に満足', count: 150 },
+        { answer: '満足', count: 250 },
+        { answer: '普通', count: 50 },
+        { answer: '不満', count: 30 },
+        { answer: '非常に不満', count: 20 },
       ],
     },
     {
       id: 'q2',
-      text: 'How likely are you to recommend our product to a friend?',
-      type: 'rating', // Assuming a scale, let's represent with a chart
+      text: '当社の製品を友人に薦める可能性はどのくらいですか？',
+      type: 'rating',
       results: [
-        { answer: '1 (Not Likely)', count: 15 },
+        { answer: '1 (低い)', count: 15 },
         { answer: '2', count: 25 },
         { answer: '3', count: 60 },
         { answer: '4', count: 150 },
-        { answer: '5 (Very Likely)', count: 250 },
+        { answer: '5 (高い)', count: 250 },
       ],
     },
     {
       id: 'q3',
-      text: 'What features would you like to see improved? (Top 5)',
-      type: 'open-text', // Display as a table for common themes
+      text: '改善してほしい機能は何ですか？ (上位5件)',
+      type: 'open-text',
       results: [
-        { answer: 'User Interface', count: 120 },
-        { answer: 'Performance Speed', count: 95 },
-        { answer: 'Mobile App Experience', count: 80 },
-        { answer: 'Reporting Features', count: 65 },
-        { answer: 'Integration Options', count: 50 },
+        { answer: 'ユーザーインターフェース', count: 120 },
+        { answer: '処理速度', count: 95 },
+        { answer: 'モバイルアプリ体験', count: 80 },
+        { answer: 'レポート機能', count: 65 },
+        { answer: '連携オプション', count: 50 },
       ],
     },
   ],
@@ -70,7 +70,7 @@ const surveyData = {
 
 const chartConfig = {
   count: {
-    label: 'Count',
+    label: '回答数', // Translated
     color: 'hsl(var(--chart-1))',
   },
 } satisfies ChartConfig;
@@ -82,7 +82,7 @@ const SurveyResults: React.FC = () => {
         <CardHeader>
           <CardTitle>{surveyData.title}</CardTitle>
           <CardDescription>
-            {surveyData.description} (Total Respondents: {surveyData.totalRespondents})
+            {surveyData.description} (総回答者数: {surveyData.totalRespondents}名)
           </CardDescription>
         </CardHeader>
       </Card>
@@ -90,7 +90,7 @@ const SurveyResults: React.FC = () => {
       {surveyData.questions.map((question, index) => (
         <Card key={question.id} className="mb-6">
           <CardHeader>
-            <CardTitle>Question {index + 1}</CardTitle>
+            <CardTitle>質問 {index + 1}</CardTitle>
             <CardDescription>{question.text}</CardDescription>
           </CardHeader>
           <CardContent>
@@ -107,7 +107,7 @@ const SurveyResults: React.FC = () => {
                     tickLine={false}
                     tickMargin={10}
                     axisLine={false}
-                    // tickFormatter={(value) => value.slice(0, 15) + (value.length > 15 ? '...' : '')} // Shorten labels if needed
+                    // tickFormatter={(value) => value.slice(0, 15) + (value.length > 15 ? '...' : '')}
                   />
                    <YAxis />
                   <ChartTooltip
@@ -121,8 +121,8 @@ const SurveyResults: React.FC = () => {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Common Theme / Answer</TableHead>
-                    <TableHead className="text-right">Count</TableHead>
+                    <TableHead>主なテーマ・回答</TableHead>
+                    <TableHead className="text-right">回答数</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -135,7 +135,7 @@ const SurveyResults: React.FC = () => {
                 </TableBody>
               </Table>
             ) : (
-              <p>Unsupported question type for results display.</p>
+              <p>この質問タイプの表示はサポートされていません。</p>
             )}
           </CardContent>
         </Card>

@@ -1,10 +1,8 @@
-import React from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ArrowLeft, AlertTriangle } from 'lucide-react';
-import { cn } from '@/lib/utils';
 import { differenceInDays, parseISO, isBefore, startOfDay, isValid, format } from 'date-fns';
 import { ja } from 'date-fns/locale';
 
@@ -84,7 +82,7 @@ const contracts = [
   },
 ];
 
-type Contract = typeof contracts[0];
+// Contract data type definition is not needed as it's not used elsewhere in the component
 
 // --- Helper Functions (Should ideally be imported from a shared location) ---
 const today = startOfDay(new Date());

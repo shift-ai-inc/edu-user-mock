@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -6,7 +6,6 @@ import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox'; // Import Checkbox
 import { Label } from '@/components/ui/label'; // Import Label
 import { ArrowLeft } from 'lucide-react';
-import { cn } from '@/lib/utils';
 import { format, parseISO, isValid } from 'date-fns';
 import { ja } from 'date-fns/locale';
 import { toast } from '@/hooks/use-toast'; // Import toast
@@ -36,10 +35,15 @@ const initialMockAdmins = [
 ];
 
 // Type for permissions object
-type Permissions = Partial<Record<PermissionKey, boolean>>;
+type Permissions = {
+  overallAdmin: boolean;
+  assessmentAdmin: boolean;
+  userAdmin: boolean;
+  analysisView: boolean;
+};
 
 // Updated Admin type
-type Admin = typeof initialMockAdmins[0] & { permissions: Permissions };
+type Admin = typeof initialMockAdmins[0];
 
 // --- Helper Functions ---
 const formatDate = (dateString: string | null) => {
@@ -71,13 +75,23 @@ export default function CompanyAdminDetail() {
   const admin = mockAdmins.find(a => a.id === adminId);
 
   // State for managing the permissions being edited
-  const [editablePermissions, setEditablePermissions] = useState<Permissions>({});
+  const [editablePermissions, setEditablePermissions] = useState<Permissions>({
+    overallAdmin: false,
+    assessmentAdmin: false,
+    userAdmin: false,
+    analysisView: false
+  });
 
   // Initialize editable permissions when admin data is loaded/found
   useEffect(() => {
     if (admin) {
       // Ensure all available permissions have a defined boolean value
-      const initialPermissions: Permissions = {};
+      const initialPermissions: Permissions = {
+        overallAdmin: false,
+        assessmentAdmin: false,
+        userAdmin: false,
+        analysisView: false
+      };
       Object.keys(AVAILABLE_PERMISSIONS).forEach(key => {
         initialPermissions[key as PermissionKey] = !!admin.permissions?.[key as PermissionKey];
       });
@@ -86,10 +100,11 @@ export default function CompanyAdminDetail() {
   }, [admin]);
 
   const handlePermissionChange = (permissionKey: PermissionKey, checked: boolean) => {
-    setEditablePermissions(prev => ({
-      ...prev,
-      [permissionKey]: checked,
-    }));
+    setEditablePermissions(prev => {
+      const updated = { ...prev };
+      updated[permissionKey] = checked;
+      return updated;
+    });
   };
 
   const handleSaveChanges = () => {
@@ -198,7 +213,7 @@ export default function CompanyAdminDetail() {
             </div>
             <div>
               <h4 className="font-semibold mb-1">ステータス</h4>
-              <Badge variant="outline" className={cn("border", getStatusBadgeClass(admin.status))}>
+              <Badge variant="outline" className={"border " + getStatusBadgeClass(admin.status)}>
                 {admin.status}
               </Badge>
             </div>

@@ -1,13 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-} from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import {
   Table,
   TableBody,
@@ -21,14 +15,15 @@ import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import {
   Search,
-  Play,
-  RotateCcw, // 再開アイコン
+  // Play, // No longer needed here
+  // RotateCcw, // No longer needed here
   Clock,
   ListChecks, // 質問数アイコン
   HelpCircle,
   ArrowUpDown,
   FileText, // アセスメントアイコン
-  Eye, // 詳細アイコン
+  // Eye, // No longer needed here
+  // Plus, // 新規作成アイコン (将来用)
   Filter, // フィルターアイコン (将来用)
 } from "lucide-react";
 import {
@@ -41,20 +36,11 @@ import {
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"; // Tabs for filtering
 
 // アセスメントのステータスタイプ
-type AssessmentStatus =
-  | "available"
-  | "in-progress"
-  | "completed"
-  | "draft"
-  | "archived";
+type AssessmentStatus = "available" | "in-progress" | "completed" | "draft" | "archived";
 
 // アセスメントのカテゴリタイプ (例)
-type AssessmentCategory =
-  | "skill"
-  | "personality"
-  | "aptitude"
-  | "knowledge"
-  | "other";
+type AssessmentCategory = "skill" | "personality" | "aptitude" | "knowledge" | "other";
+
 
 // アセスメントリスト項目データ型
 interface AssessmentListItem {
@@ -88,8 +74,7 @@ const mockAssessmentList: AssessmentListItem[] = [
   {
     id: 101,
     title: "総合スキルアセスメント",
-    description:
-      "論理思考、コミュニケーション、問題解決能力などを総合的に評価します。",
+    description: "論理思考、コミュニケーション、問題解決能力などを総合的に評価します。",
     status: "available",
     category: "skill",
     estimatedTime: "約10分",
@@ -144,8 +129,7 @@ export default function AssessmentList() {
   const [assessments, setAssessments] = useState<AssessmentListItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
-  const [sortField, setSortField] =
-    useState<keyof AssessmentListItem>("updatedAt");
+  const [sortField, setSortField] = useState<keyof AssessmentListItem>("updatedAt");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [categoryFilter, setCategoryFilter] = useState<string>("all");
@@ -168,10 +152,7 @@ export default function AssessmentList() {
               if (parsed && parsed.assessmentId === assessment.id) {
                 if (parsed.status === "completed") {
                   currentStatus = "completed";
-                } else if (
-                  parsed.status === "in-progress" &&
-                  currentStatus !== "completed"
-                ) {
+                } else if (parsed.status === "in-progress" && currentStatus !== "completed") {
                   // API側で既に完了済みなら、ローカルの中断中より優先
                   currentStatus = "in-progress";
                 }
@@ -205,22 +186,12 @@ export default function AssessmentList() {
       const matchesSearch =
         searchTerm === "" ||
         assessment.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        assessment.description
-          .toLowerCase()
-          .includes(searchTerm.toLowerCase()) ||
-        (assessment.category &&
-          assessment.category
-            .toLowerCase()
-            .includes(searchTerm.toLowerCase())) ||
-        (assessment.tags &&
-          assessment.tags.some((tag) =>
-            tag.toLowerCase().includes(searchTerm.toLowerCase())
-          ));
+        assessment.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (assessment.category && assessment.category.toLowerCase().includes(searchTerm.toLowerCase())) ||
+        (assessment.tags && assessment.tags.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase())));
 
-      const matchesStatus =
-        statusFilter === "all" || assessment.status === statusFilter;
-      const matchesCategory =
-        categoryFilter === "all" || assessment.category === categoryFilter;
+      const matchesStatus = statusFilter === "all" || assessment.status === statusFilter;
+      const matchesCategory = categoryFilter === "all" || assessment.category === categoryFilter;
 
       let matchesTab = true;
       if (activeTab === "available") {
@@ -229,11 +200,10 @@ export default function AssessmentList() {
         matchesTab = assessment.status === "in-progress";
       } else if (activeTab === "completed") {
         matchesTab = assessment.status === "completed";
-      } else if (activeTab === "manageable") {
-        // 管理タブ (下書き、アーカイブなど)
-        matchesTab =
-          assessment.status === "draft" || assessment.status === "archived";
+      } else if (activeTab === "manageable") { // 管理タブ (下書き、アーカイブなど)
+        matchesTab = assessment.status === "draft" || assessment.status === "archived";
       }
+
 
       return matchesSearch && matchesStatus && matchesCategory && matchesTab;
     })
@@ -244,11 +214,7 @@ export default function AssessmentList() {
       if (typeof valA === "number" && typeof valB === "number") {
         return sortDirection === "asc" ? valA - valB : valB - valA;
       }
-      if (
-        sortField === "createdAt" ||
-        sortField === "updatedAt" ||
-        sortField === "lastAttempted"
-      ) {
+      if (sortField === "createdAt" || sortField === "updatedAt" || sortField === "lastAttempted") {
         const dateA = valA ? new Date(valA as string).getTime() : 0;
         const dateB = valB ? new Date(valB as string).getTime() : 0;
         return sortDirection === "asc" ? dateA - dateB : dateB - dateA;
@@ -258,14 +224,14 @@ export default function AssessmentList() {
         : String(valB).localeCompare(String(valA));
     });
 
-  const handleStartOrResumeAssessment = (id: number) => {
-    navigate(`/assessments/take/${id}`);
-  };
+  // const handleStartOrResumeAssessment = (id: number) => { // This function can be removed if not used elsewhere
+  //   navigate(`/assessments/take/${id}`);
+  // };
 
   const handleViewDetails = (id: number) => {
     navigate(`/assessments/detail/${id}`);
   };
-
+  
   // const handleCreateAssessment = () => {
   //   navigate("/assessments/create"); // 将来用
   // };
@@ -281,85 +247,53 @@ export default function AssessmentList() {
 
   const getStatusBadgeStyle = (status: AssessmentStatus) => {
     switch (status) {
-      case "available":
-        return "bg-blue-100 text-blue-800 hover:bg-blue-200";
-      case "in-progress":
-        return "bg-yellow-100 text-yellow-800 hover:bg-yellow-200";
-      case "completed":
-        return "bg-green-100 text-green-800 hover:bg-green-200";
-      case "draft":
-        return "bg-gray-100 text-gray-800 hover:bg-gray-200";
-      case "archived":
-        return "bg-neutral-100 text-neutral-800 hover:bg-neutral-200";
-      default:
-        return "bg-gray-100 text-gray-800 hover:bg-gray-200";
+      case "available": return "bg-blue-100 text-blue-800 hover:bg-blue-200";
+      case "in-progress": return "bg-yellow-100 text-yellow-800 hover:bg-yellow-200";
+      case "completed": return "bg-green-100 text-green-800 hover:bg-green-200";
+      case "draft": return "bg-gray-100 text-gray-800 hover:bg-gray-200";
+      case "archived": return "bg-neutral-100 text-neutral-800 hover:bg-neutral-200";
+      default: return "bg-gray-100 text-gray-800 hover:bg-gray-200";
     }
   };
 
   const getStatusLabel = (status: AssessmentStatus) => {
     switch (status) {
-      case "available":
-        return "受験可能";
-      case "in-progress":
-        return "中断中";
-      case "completed":
-        return "完了済";
-      case "draft":
-        return "下書き";
-      case "archived":
-        return "アーカイブ済";
-      default:
-        return "不明";
+      case "available": return "受験可能";
+      case "in-progress": return "中断中";
+      case "completed": return "完了済";
+      case "draft": return "下書き";
+      case "archived": return "アーカイブ済";
+      default: return "不明";
     }
   };
 
   const getCategoryLabel = (category: AssessmentCategory) => {
     switch (category) {
-      case "skill":
-        return "スキル";
-      case "personality":
-        return "パーソナリティ";
-      case "aptitude":
-        return "適性";
-      case "knowledge":
-        return "知識";
-      case "other":
-        return "その他";
-      default:
-        return category;
+      case "skill": return "スキル";
+      case "personality": return "パーソナリティ";
+      case "aptitude": return "適性";
+      case "knowledge": return "知識";
+      case "other": return "その他";
+      default: return category;
     }
   };
-
+  
   const formatDate = (dateString?: string) => {
     if (!dateString) return "-";
-    return new Date(dateString).toLocaleDateString("ja-JP", {
-      year: "numeric",
-      month: "2-digit",
-      day: "2-digit",
-    });
+    return new Date(dateString).toLocaleDateString("ja-JP", { year: 'numeric', month: '2-digit', day: '2-digit' });
   };
+
 
   return (
     <div className="p-6 max-w-7xl mx-auto">
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center text-2xl">
-            {" "}
-            {/* Keep text-2xl for consistency with original h1 */}
-            <FileText className="mr-2 h-6 w-6" />{" "}
-            {/* Keep original icon size */}
+            <FileText className="mr-2 h-6 w-6" />
             アセスメント一覧
           </CardTitle>
           <CardDescription>
             利用可能なアセスメントを確認し、受験を開始または再開します。
-            {/* Original Button was here, commented out:
-            <Button onClick={handleCreateAssessment} className="mt-4 md:mt-0 md:ml-auto">
-              <Plus className="mr-2 h-4 w-4" />
-              新規アセスメント作成
-            </Button> 
-            If needed, it should be outside CardDescription or styled appropriately.
-            For now, assuming the button is not part of the header in this card structure.
-            */}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -416,86 +350,45 @@ export default function AssessmentList() {
           </div>
 
           <Card>
-            {" "}
-            {/* This is the inner card for the table */}
             <CardContent className="p-0">
               <Table>
                 <TableHeader>
                   <TableRow>
                     <TableHead className="w-[300px]">
-                      <Button
-                        variant="ghost"
-                        className="p-0 h-auto font-medium hover:bg-transparent"
-                        onClick={() => toggleSort("title")}
-                      >
-                        タイトル{" "}
-                        {sortField === "title" && (
-                          <ArrowUpDown className="ml-2 h-3 w-3 inline" />
-                        )}
+                      <Button variant="ghost" className="p-0 h-auto font-medium hover:bg-transparent" onClick={() => toggleSort("title")}>
+                        タイトル {sortField === "title" && <ArrowUpDown className="ml-2 h-3 w-3 inline" />}
                       </Button>
                     </TableHead>
                     <TableHead>
-                      <Button
-                        variant="ghost"
-                        className="p-0 h-auto font-medium hover:bg-transparent"
-                        onClick={() => toggleSort("category")}
-                      >
-                        カテゴリ{" "}
-                        {sortField === "category" && (
-                          <ArrowUpDown className="ml-2 h-3 w-3 inline" />
-                        )}
+                      <Button variant="ghost" className="p-0 h-auto font-medium hover:bg-transparent" onClick={() => toggleSort("category")}>
+                        カテゴリ {sortField === "category" && <ArrowUpDown className="ml-2 h-3 w-3 inline" />}
                       </Button>
                     </TableHead>
                     <TableHead className="hidden md:table-cell">
-                      <Button
-                        variant="ghost"
-                        className="p-0 h-auto font-medium hover:bg-transparent"
-                        onClick={() => toggleSort("questionCount")}
-                      >
-                        問題数{" "}
-                        {sortField === "questionCount" && (
-                          <ArrowUpDown className="ml-2 h-3 w-3 inline" />
-                        )}
+                      <Button variant="ghost" className="p-0 h-auto font-medium hover:bg-transparent" onClick={() => toggleSort("questionCount")}>
+                        問題数 {sortField === "questionCount" && <ArrowUpDown className="ml-2 h-3 w-3 inline" />}
                       </Button>
                     </TableHead>
                     <TableHead className="hidden lg:table-cell">
-                      <Button
-                        variant="ghost"
-                        className="p-0 h-auto font-medium hover:bg-transparent"
-                        onClick={() => toggleSort("updatedAt")}
-                      >
-                        最終更新{" "}
-                        {sortField === "updatedAt" && (
-                          <ArrowUpDown className="ml-2 h-3 w-3 inline" />
-                        )}
+                      <Button variant="ghost" className="p-0 h-auto font-medium hover:bg-transparent" onClick={() => toggleSort("updatedAt")}>
+                        最終更新 {sortField === "updatedAt" && <ArrowUpDown className="ml-2 h-3 w-3 inline" />}
                       </Button>
                     </TableHead>
                     <TableHead>
-                      <Button
-                        variant="ghost"
-                        className="p-0 h-auto font-medium hover:bg-transparent"
-                        onClick={() => toggleSort("status")}
-                      >
-                        ステータス{" "}
-                        {sortField === "status" && (
-                          <ArrowUpDown className="ml-2 h-3 w-3 inline" />
-                        )}
+                      <Button variant="ghost" className="p-0 h-auto font-medium hover:bg-transparent" onClick={() => toggleSort("status")}>
+                        ステータス {sortField === "status" && <ArrowUpDown className="ml-2 h-3 w-3 inline" />}
                       </Button>
                     </TableHead>
-                    <TableHead className="text-right">アクション</TableHead>
+                    {/* <TableHead className="text-right">アクション</TableHead> */} {/* Removed Action Header */}
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {loading ? (
-                    <TableRow>
-                      <TableCell colSpan={6} className="text-center py-8">
-                        読み込み中...
-                      </TableCell>
-                    </TableRow>
+                    <TableRow><TableCell colSpan={5} className="text-center py-8">読み込み中...</TableCell></TableRow> // Adjusted colSpan
                   ) : filteredAssessments.length > 0 ? (
                     filteredAssessments.map((assessment) => (
-                      <TableRow
-                        key={assessment.id}
+                      <TableRow 
+                        key={assessment.id} 
                         onClick={() => handleViewDetails(assessment.id)}
                         className="cursor-pointer hover:bg-muted/50"
                       >
@@ -505,21 +398,13 @@ export default function AssessmentList() {
                             {assessment.description}
                           </div>
                           <div className="flex items-center gap-1 mt-1 md:hidden">
-                            {" "}
-                            {/* Show on small screens */}
                             <ListChecks className="h-3 w-3 text-muted-foreground" />
-                            <span className="text-xs">
-                              {assessment.questionCount} 問
-                            </span>
+                            <span className="text-xs">{assessment.questionCount} 問</span>
                             <Clock className="h-3 w-3 text-muted-foreground ml-2" />
-                            <span className="text-xs">
-                              {assessment.estimatedTime}
-                            </span>
+                            <span className="text-xs">{assessment.estimatedTime}</span>
                           </div>
                         </TableCell>
-                        <TableCell>
-                          {getCategoryLabel(assessment.category)}
-                        </TableCell>
+                        <TableCell>{getCategoryLabel(assessment.category)}</TableCell>
                         <TableCell className="hidden md:table-cell">
                           <div className="flex items-center">
                             <ListChecks className="h-3 w-3 text-muted-foreground mr-1" />
@@ -530,26 +415,19 @@ export default function AssessmentList() {
                             {assessment.estimatedTime}
                           </div>
                         </TableCell>
-                        <TableCell className="hidden lg:table-cell text-sm">
-                          {formatDate(assessment.updatedAt)}
-                        </TableCell>
+                        <TableCell className="hidden lg:table-cell text-sm">{formatDate(assessment.updatedAt)}</TableCell>
                         <TableCell>
-                          <Badge
-                            className={getStatusBadgeStyle(assessment.status)}
-                          >
+                          <Badge className={getStatusBadgeStyle(assessment.status)}>
                             {getStatusLabel(assessment.status)}
                           </Badge>
                         </TableCell>
+                        {/* Removed Action Cell Content */}
+                        {/* 
                         <TableCell className="text-right">
                           <div className="flex justify-end gap-1 sm:gap-2">
-                            {(assessment.status === "available" ||
-                              assessment.status === "in-progress") && (
+                            {(assessment.status === "available" || assessment.status === "in-progress") && (
                               <Button
-                                variant={
-                                  assessment.status === "in-progress"
-                                    ? "secondary"
-                                    : "default"
-                                }
+                                variant={assessment.status === "in-progress" ? "secondary" : "default"}
                                 size="sm"
                                 onClick={(e) => {
                                   e.stopPropagation(); // Prevent row click
@@ -557,16 +435,8 @@ export default function AssessmentList() {
                                 }}
                                 className="text-xs px-2 h-7 sm:text-sm sm:px-3 sm:h-8"
                               >
-                                {assessment.status === "in-progress" ? (
-                                  <RotateCcw className="h-3 w-3 sm:mr-1" />
-                                ) : (
-                                  <Play className="h-3 w-3 sm:mr-1" />
-                                )}
-                                <span className="hidden sm:inline">
-                                  {assessment.status === "in-progress"
-                                    ? "再開"
-                                    : "開始"}
-                                </span>
+                                {assessment.status === "in-progress" ? <RotateCcw className="h-3 w-3 sm:mr-1" /> : <Play className="h-3 w-3 sm:mr-1" />}
+                                <span className="hidden sm:inline">{assessment.status === "in-progress" ? "再開" : "開始"}</span>
                               </Button>
                             )}
                             <Button
@@ -582,17 +452,16 @@ export default function AssessmentList() {
                               <span className="hidden sm:inline">詳細</span>
                             </Button>
                           </div>
-                        </TableCell>
+                        </TableCell> 
+                        */}
                       </TableRow>
                     ))
                   ) : (
                     <TableRow>
-                      <TableCell colSpan={6} className="text-center py-8">
+                      <TableCell colSpan={5} className="text-center py-8"> {/* Adjusted colSpan */}
                         <div className="flex flex-col items-center justify-center">
                           <HelpCircle className="h-8 w-8 text-muted-foreground mb-2" />
-                          <p className="text-lg font-medium">
-                            アセスメントが見つかりません
-                          </p>
+                          <p className="text-lg font-medium">アセスメントが見つかりません</p>
                           <p className="text-sm text-muted-foreground mt-1">
                             条件に一致するアセスメントはありません。フィルターを変更してみてください。
                           </p>

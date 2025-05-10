@@ -24,15 +24,14 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Search,
   Filter,
-  Eye,
-  BarChart3,
+  // Eye, // No longer needed for a dedicated button in the row
+  // BarChart3, // No longer needed for a dedicated button in the row
   Clock,
   Calendar,
   AlertCircle,
   CheckCircle,
   ArrowUpDown,
   HelpCircle,
-  // Plus, // Removed Plus icon as the button is being removed
 } from "lucide-react";
 
 // サーベイのステータスタイプ
@@ -226,16 +225,12 @@ export default function SurveyList() {
     navigate(`/surveys/detail/${id}`);
   };
 
-  const handleTakeSurvey = (id: number) => {
-    navigate(`/surveys/take/${id}`);
-  };
+  // const handleTakeSurvey = (id: number) => { // Kept for potential use on detail page
+  //   navigate(`/surveys/take/${id}`);
+  // };
 
-  const handleViewResults = (id: number) => {
-    navigate(`/surveys/results/${id}`);
-  };
-
-  // const handleCreateSurvey = () => { // Function no longer needed
-  //   navigate("/surveys/create");
+  // const handleViewResults = (id: number) => { // Kept for potential use on detail page
+  //   navigate(`/surveys/results/${id}`);
   // };
 
   const toggleSort = (field: keyof Survey) => {
@@ -304,7 +299,7 @@ export default function SurveyList() {
     <div className="p-6 max-w-7xl mx-auto">
       <Card>
         <CardHeader>
-          <CardTitle className="text-2xl"> {/* Keep text-2xl for consistency with original h1 */}
+          <CardTitle className="text-2xl">
             サーベイ一覧
           </CardTitle>
           <CardDescription>
@@ -405,7 +400,7 @@ export default function SurveyList() {
                         回答率 {sortField === "completionRate" && <ArrowUpDown className="ml-2 h-3 w-3 inline" />}
                       </Button>
                     </TableHead>
-                    <TableHead className="text-right">アクション</TableHead>
+                    {/* <TableHead className="text-right">アクション</TableHead> Removed Action column header */}
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -477,45 +472,12 @@ export default function SurveyList() {
                             {survey.responsesCount} 件の回答
                           </div>
                         </TableCell>
-                        <TableCell className="text-right">
-                          <div className="flex justify-end gap-1 sm:gap-2">
-                            {survey.status === "active" && !survey.isCompleted && new Date(survey.expiresAt) >= new Date() ? (
-                              <Button
-                                variant="default"
-                                size="sm"
-                                onClick={(e) => { e.stopPropagation(); handleTakeSurvey(survey.id); }}
-                                className="text-xs px-2 h-7 sm:text-sm sm:px-3 sm:h-8"
-                              >
-                                回答する
-                              </Button>
-                            ) : (
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={(e) => { e.stopPropagation(); handleViewResults(survey.id); }}
-                                disabled={survey.status === 'draft'}
-                                className="text-xs px-2 h-7 sm:text-sm sm:px-3 sm:h-8"
-                              >
-                                <BarChart3 className="h-3 w-3 sm:mr-1" />
-                                <span className="hidden sm:inline">結果</span>
-                              </Button>
-                            )}
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={(e) => { e.stopPropagation(); handleViewSurveyDetails(survey.id); }}
-                              className="text-xs px-2 h-7 sm:text-sm sm:px-3 sm:h-8"
-                            >
-                              <Eye className="h-3 w-3 sm:mr-1" />
-                              <span className="hidden sm:inline">詳細</span>
-                            </Button>
-                          </div>
-                        </TableCell>
+                        {/* Removed TableCell for actions */}
                       </TableRow>
                     ))
                   ) : (
                     <TableRow>
-                      <TableCell colSpan={7} className="text-center py-8">
+                      <TableCell colSpan={6} className="text-center py-8"> {/* Adjusted colSpan from 7 to 6 */}
                         <div className="flex flex-col items-center justify-center">
                           <HelpCircle className="h-8 w-8 text-muted-foreground mb-2" />
                           <p className="text-lg font-medium">

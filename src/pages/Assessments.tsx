@@ -3,10 +3,6 @@ import { useNavigate } from 'react-router-dom'; // Import useNavigate
 import {
   Card,
   CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
 } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
@@ -28,28 +24,16 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import {
   MoreHorizontal,
   Search,
-  Filter,
   Plus,
   Copy,
   BarChart3,
-  FileText,
-  Edit, // Added Edit icon
-  Eye, // Added Eye icon
+  Edit,
+  Eye,
 } from "lucide-react";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"; // Import Tooltip components
-import { cn } from "@/lib/utils"; // Import cn
+import { TooltipProvider } from "@/components/ui/tooltip";
 
 // サンプルデータ (Add more fields based on AddAssessment form)
 const assessments = [

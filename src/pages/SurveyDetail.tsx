@@ -1,9 +1,9 @@
 import { useParams } from 'react-router-dom';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Separator } from '@/components/ui/separator';
-import { Calendar, Building, Users, BarChart3, Clock } from 'lucide-react';
+import { Building, Users, Calendar } from 'lucide-react';
 
 // サンプルデータ (本来はAPIから取得)
 const surveys = [

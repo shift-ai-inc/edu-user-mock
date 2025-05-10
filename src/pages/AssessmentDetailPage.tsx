@@ -1,7 +1,7 @@
 import { useParams } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Printer } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Badge } from "@/components/ui/badge"; // Import Badge
 
@@ -230,15 +230,8 @@ export default function AssessmentDetailPage() {
 
       <div className="flex justify-end gap-2 print:hidden">
         <Button 
-          variant="outline"
-          onClick={() => window.print()}
-        >
-          <Printer className="mr-2 h-4 w-4" />
-          印刷
-        </Button>
-        <Button 
           onClick={() => navigate(`/assessments/take/${assessment.id}`)}
-          disabled={assessment.status !== "available" && assessment.status !== "in-progress"}
+          // The disabled prop is removed to make the button always active
         >
           {assessment.status === "in-progress" ? "アセスメントを再開" : "アセスメントを開始"}
         </Button>

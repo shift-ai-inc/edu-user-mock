@@ -176,7 +176,7 @@ export default function AssessmentResults() {
           variant: "destructive",
         });
         // Optionally navigate back on error
-        // navigate("/assessments");
+        // navigate("/assessments/results");
       } finally {
         setLoading(false);
       }
@@ -218,15 +218,15 @@ export default function AssessmentResults() {
       <div className="p-6 max-w-4xl mx-auto text-center">
         <Card>
           <CardHeader>
-            <CardTitle>結果が見つかりません</CardTitle>
+            <CardTitle>アセスメント結果が見つかりません</CardTitle>
             <CardDescription>
               指定されたアセスメントの結果が見つかりませんでした。
             </CardDescription>
           </CardHeader>
           <CardFooter className="justify-center">
-            <Button variant="outline" onClick={() => navigate("/assessments")}>
+            <Button variant="outline" onClick={() => navigate("/assessments/results")}>
               <ArrowLeft className="mr-2 h-4 w-4" />
-              アセスメント一覧に戻る
+              結果一覧に戻る
             </Button>
           </CardFooter>
         </Card>
@@ -243,11 +243,11 @@ export default function AssessmentResults() {
           <Button
             variant="outline"
             size="sm"
-            onClick={() => navigate("/assessments")}
+            onClick={() => navigate("/assessments/results")}
             className="mb-2"
           >
             <ArrowLeft className="mr-2 h-4 w-4" />
-            一覧に戻る
+            結果一覧に戻る
           </Button>
           <h1 className="text-3xl font-bold">
             {result.assessmentTitle} - 結果
