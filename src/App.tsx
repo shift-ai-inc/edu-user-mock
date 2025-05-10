@@ -1,8 +1,4 @@
-import {
-  useNavigate,
-  useLocation,
-  Outlet,
-} from "react-router-dom";
+import { useNavigate, useLocation, Outlet } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import {
   BarChart3,
@@ -59,22 +55,35 @@ function Layout() {
   const isActiveSubItem = (path: string) => {
     if (currentPath === path) return true;
 
-    if (path === "/assessments" && (currentPath.startsWith("/assessments/take/") || currentPath.startsWith("/assessments/detail/"))) {
+    if (
+      path === "/assessments" &&
+      (currentPath.startsWith("/assessments/take/") ||
+        currentPath.startsWith("/assessments/detail/"))
+    ) {
       return true;
     }
-    if (path === "/assessments/results" && currentPath.startsWith("/assessments/results/")) {
+    if (
+      path === "/assessments/results" &&
+      currentPath.startsWith("/assessments/results/")
+    ) {
       return true;
     }
-    if (path === "/surveys" && (currentPath.startsWith("/surveys/take/") || currentPath.startsWith("/surveys/detail/"))) {
+    if (
+      path === "/surveys" &&
+      (currentPath.startsWith("/surveys/take/") ||
+        currentPath.startsWith("/surveys/detail/"))
+    ) {
       return true;
     }
-    if (path === "/surveys/results" && currentPath.startsWith("/surveys/results/")) {
+    if (
+      path === "/surveys/results" &&
+      currentPath.startsWith("/surveys/results/")
+    ) {
       return true;
     }
     if (path === "/settings" && currentPath === "/settings") {
-        return true;
+      return true;
     }
-
 
     return false;
   };
@@ -95,21 +104,17 @@ function Layout() {
   const handleSubItemClick = (path: string) => {
     navigate(path);
     setIsMobileSidebarOpen(false);
-  }
+  };
 
   const isTakingAssessment = currentPath.startsWith("/assessments/take/");
   const isTakingSurvey = currentPath.startsWith("/surveys/take/");
 
-  const showDesktopSidebar =
-    !isTakingAssessment &&
-    !isTakingSurvey;
+  const showDesktopSidebar = !isTakingAssessment && !isTakingSurvey;
 
   const SidebarContent = () => (
     <div className="flex flex-col h-full">
       <div className="p-4 border-b">
-        <h1 className="text-xl font-semibold text-gray-900">
-          SHIFT AI管理ポータル
-        </h1>
+        <h1 className="text-xl font-semibold text-gray-900">User Mock</h1>
       </div>
       <nav className="flex-grow p-4 overflow-y-auto">
         {sidebarItems.map((item, index) => (
@@ -120,7 +125,7 @@ function Layout() {
                 (item.basePath &&
                   isActiveParent(item.basePath) &&
                   item.subItems &&
-                  openDropdown.includes(item.basePath)) 
+                  openDropdown.includes(item.basePath))
                   ? "secondary"
                   : "ghost"
               }
@@ -140,15 +145,15 @@ function Layout() {
               )}
             </Button>
 
-            {item.subItems && item.basePath && openDropdown.includes(item.basePath) && (
+            {item.subItems &&
+              item.basePath &&
+              openDropdown.includes(item.basePath) && (
                 <div className="ml-6 mt-1 space-y-1 border-l-2 border-gray-100 pl-4">
                   {item.subItems.map((subItem, subIndex) => (
                     <Button
                       key={subIndex}
                       variant={
-                        isActiveSubItem(subItem.path)
-                          ? "secondary"
-                          : "ghost"
+                        isActiveSubItem(subItem.path) ? "secondary" : "ghost"
                       }
                       size="sm"
                       className={`w-full justify-start text-sm ${
@@ -169,7 +174,6 @@ function Layout() {
     </div>
   );
 
-
   return (
     <div className="min-h-screen bg-gray-100 flex">
       {showDesktopSidebar && (
@@ -179,11 +183,12 @@ function Layout() {
       )}
 
       <header className="md:hidden fixed top-0 left-0 right-0 bg-white shadow h-16 flex items-center justify-between px-4 z-20 print:hidden">
-        <h1 className="text-lg font-semibold text-gray-900">
-          SHIFT AI
-        </h1>
-        {showDesktopSidebar && ( 
-          <Sheet open={isMobileSidebarOpen} onOpenChange={setIsMobileSidebarOpen}>
+        <h1 className="text-lg font-semibold text-gray-900">SHIFT AI</h1>
+        {showDesktopSidebar && (
+          <Sheet
+            open={isMobileSidebarOpen}
+            onOpenChange={setIsMobileSidebarOpen}
+          >
             <SheetTrigger asChild>
               <Button variant="ghost" size="icon">
                 <Menu className="h-6 w-6" />
@@ -195,7 +200,7 @@ function Layout() {
           </Sheet>
         )}
       </header>
-      
+
       <main
         className={`flex-grow ${
           showDesktopSidebar ? "md:pl-64" : "pl-0"
