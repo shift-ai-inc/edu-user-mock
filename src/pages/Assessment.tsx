@@ -28,7 +28,6 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
@@ -39,6 +38,9 @@ import {
   Loader2,
   Clock,
   CheckCircle,
+  AlertCircle,
+  TrendingUp,
+  PieChart,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { debounce } from "lodash-es"; // Lodash debounce for auto-save
@@ -179,8 +181,101 @@ const shuffleArray = <T,>(array: T[]): T[] => {
   return shuffled;
 };
 
+// 推定精度表示コンポーネント
+function PrecisionIndicator({
+  standardError,
+  answeredQuestions,
+  targetError = 0.3,
+}: {
+  standardError: number;
+  answeredQuestions: number;
+  targetError?: number;
+  maxItems?: number;
+}) {
+  // 標準誤差から信頼度への変換（95%信頼区間を想定）
+  // 標準誤差1.96が信頼度約0%、標準誤差0が信頼度100%に相当
+  const confidenceLevel = Math.max(
+    0,
+    Math.min(100, Math.round((1 - standardError / 2) * 100))
+  );
+
+  // 目標精度までに必要な残り問題数を予測
+  const TYPICAL_ERROR_REDUCTION_RATE = 0.15; // 典型的な1問あたりの誤差減少率
+
+  let estimatedRemainingQuestions = 0;
+  if (standardError > targetError) {
+    // 残りの誤差を減らすのに必要な問題数を計算
+    estimatedRemainingQuestions = Math.ceil(
+      (standardError - targetError) / TYPICAL_ERROR_REDUCTION_RATE
+    );
+  }
+
+  // 信頼度に基づいた進捗パーセンテージ
+  const initialConfidence = 0; // 初期信頼度
+  const targetConfidence = 85; // 目標信頼度（SE=0.3に相当）
+  const progressPercent = Math.min(
+    ((confidenceLevel - initialConfidence) /
+      (targetConfidence - initialConfidence)) *
+      100,
+    100
+  );
+
+  return (
+    <div className="bg-muted/10 rounded-lg p-4 mb-4 border border-muted">
+      <h3 className="font-medium text-sm mb-3">適応型テスト推定精度</h3>
+      <div className="grid grid-cols-3 gap-4 text-sm">
+        <div className="bg-background p-3 rounded-md">
+          <div className="flex items-center gap-1 text-muted-foreground text-xs mb-1">
+            <AlertCircle className="h-3 w-3" />
+            <span>標準誤差 (SE)</span>
+          </div>
+          <div className="font-medium text-lg">
+            {standardError === Infinity
+              ? "計算中"
+              : `±${standardError.toFixed(2)}`}
+          </div>
+        </div>
+        <div className="bg-background p-3 rounded-md">
+          <div className="flex items-center gap-1 text-muted-foreground text-xs mb-1">
+            <TrendingUp className="h-3 w-3" />
+            <span>信頼度</span>
+          </div>
+          <div className="font-medium text-lg">
+            {standardError === Infinity ? "計算中" : `${confidenceLevel}%`}
+          </div>
+        </div>
+        <div className="bg-background p-3 rounded-md">
+          <div className="flex items-center gap-1 text-muted-foreground text-xs mb-1">
+            <PieChart className="h-3 w-3" />
+            <span>予測残問題数</span>
+          </div>
+          <div className="font-medium text-lg">
+            {standardError === Infinity
+              ? "計算中"
+              : `約${estimatedRemainingQuestions}問`}
+          </div>
+        </div>
+      </div>
+      <div className="mt-4">
+        <div className="flex justify-between text-xs text-muted-foreground mb-1">
+          <span>信頼度ベース進捗</span>
+          <span>{Math.round(progressPercent)}%</span>
+        </div>
+        <Progress value={progressPercent} className="h-2" />
+        <div className="flex justify-between text-xs text-muted-foreground mt-1">
+          <span>回答済み: {answeredQuestions}問</span>
+          <span>
+            目標: 信頼度{targetConfidence}%（SE±{targetError}）
+          </span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function AssessmentPage() {
-  const { id } = useParams<{ id: string }>(); // ルートからアセスメントIDを取得
+  // Change from "id" to "assessmentId" to match route definition in main.tsx
+  const { assessmentId } = useParams<{ assessmentId: string }>();
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -202,7 +297,7 @@ export default function AssessmentPage() {
     const loadAssessment = async () => {
       try {
         setLoading(true);
-        const assessmentIdNum = parseInt(id ?? "", 10); // URLから取得したIDを数値に変換
+        const assessmentIdNum = parseInt(assessmentId ?? "", 10); // URLから取得したIDを数値に変換
 
         if (isNaN(assessmentIdNum)) {
           throw new Error("Invalid Assessment ID");
@@ -292,7 +387,7 @@ export default function AssessmentPage() {
     };
 
     loadAssessment();
-  }, [id, toast, navigate]); // idが変わったら再実行
+  }, [assessmentId, toast, navigate]); // idが変わったら再実行
 
   // --- 時間計測 ---
   useEffect(() => {
@@ -307,25 +402,22 @@ export default function AssessmentPage() {
 
   // --- 自動保存 ---
   // debounce関数をuseCallbackでメモ化
-  const debouncedSave = useCallback(
-    debounce((dataToSave: SavedAssessmentData) => {
-      if (!assessment) return;
-      try {
-        const storageKey = `assessment_${assessment.id}`;
-        localStorage.setItem(storageKey, JSON.stringify(dataToSave));
-        setIsSaved(true); // 保存されたことを示す
-        console.log(`Auto-saved to ${storageKey}:`, dataToSave);
-      } catch (e) {
-        console.error("自動保存に失敗:", e);
-        toast({
-          title: "自動保存エラー",
-          description: "回答の自動保存に失敗しました。",
-          variant: "destructive",
-        });
-      }
-    }, 1500), // 1.5秒ごと
-    [assessment, toast] // assessmentとtoastが変わらない限り関数を再生成しない
-  );
+  const debouncedSave = debounce((dataToSave: SavedAssessmentData) => {
+    if (!assessment) return;
+    try {
+      const storageKey = `assessment_${assessment.id}`;
+      localStorage.setItem(storageKey, JSON.stringify(dataToSave));
+      setIsSaved(true); // 保存されたことを示す
+      console.log(`Auto-saved to ${storageKey}:`, dataToSave);
+    } catch (e) {
+      console.error("自動保存に失敗:", e);
+      toast({
+        title: "自動保存エラー",
+        description: "回答の自動保存に失敗しました。",
+        variant: "destructive",
+      });
+    }
+  }, 1500);
 
   // answers, currentQuestionIndex, elapsedTime, questionOrder が変更されたら自動保存
   useEffect(() => {
@@ -515,37 +607,37 @@ export default function AssessmentPage() {
     switch (currentQuestion.type) {
       case "single":
         return (
-          <RadioGroup
-            // valueは選択された *option.id* を文字列にしたもの
-            value={currentValue !== null ? String(currentValue) : ""}
-            onValueChange={(value) => updateAnswer(Number(value))} // 数値に戻して保存
-            className="space-y-3"
-          >
-            {shuffledOptions.map((option) => (
-              <div key={option.id} className="flex items-center space-x-2">
-                <RadioGroupItem
-                  value={String(option.id)} // valueはoption.id
-                  id={`option-${currentQuestion.id}-${option.id}`}
-                />
-                <Label htmlFor={`option-${currentQuestion.id}-${option.id}`}>
-                  {option.text}
-                </Label>
-              </div>
-            ))}
-          </RadioGroup>
+          <div className="space-y-3">
+            {shuffledOptions.map((option) => {
+              const isSelected = currentValue === option.id;
+              return (
+                <div
+                  key={option.id}
+                  className={`flex items-center p-3 border-2 rounded-md cursor-pointer transition-all ${
+                    isSelected
+                      ? "border-primary bg-primary/10 font-medium"
+                      : "border-input hover:border-primary/50 hover:bg-accent"
+                  }`}
+                  onClick={() => updateAnswer(option.id)}
+                >
+                  <div className="pl-2">{option.text}</div>
+                </div>
+              );
+            })}
+          </div>
         );
 
-      case "multiple":
+      case "multiple": {
         // currentValueは選択された *option.id* の配列 (数値)
         const currentValuesNum = (
           Array.isArray(currentValue) ? currentValue : []
         ) as number[];
         return (
-          <div className="space-y-3">
+          <div className="space-y-4">
             {shuffledOptions.map((option) => {
               const isChecked = currentValuesNum.includes(option.id);
               return (
-                <div key={option.id} className="flex items-center space-x-2">
+                <div key={option.id} className="items-top flex space-x-2">
                   <Checkbox
                     id={`option-${currentQuestion.id}-${option.id}`}
                     checked={isChecked}
@@ -564,17 +656,24 @@ export default function AssessmentPage() {
                         updatedValues.length > 0 ? updatedValues : null
                       );
                     }}
+                    className="mt-1 h-5 w-5 border-2"
                   />
-                  <Label htmlFor={`option-${currentQuestion.id}-${option.id}`}>
-                    {option.text}
-                  </Label>
+                  <div className="grid gap-1.5 leading-none">
+                    <Label
+                      htmlFor={`option-${currentQuestion.id}-${option.id}`}
+                      className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                    >
+                      {option.text}
+                    </Label>
+                  </div>
                 </div>
               );
             })}
           </div>
         );
+      }
 
-      case "rating":
+      case "rating": {
         const minRating = currentQuestion.minRating || 1;
         const maxRating = currentQuestion.maxRating || 5;
         const ratings = Array.from(
@@ -602,6 +701,7 @@ export default function AssessmentPage() {
             </div>
           </div>
         );
+      }
 
       case "text":
         return (
@@ -615,26 +715,31 @@ export default function AssessmentPage() {
 
       case "boolean":
         return (
-          <RadioGroup
-            value={currentValue === null ? "" : String(currentValue)}
-            onValueChange={(value) => updateAnswer(value === "true")}
-            className="space-y-3"
-          >
-            <div className="flex items-center space-x-2">
-              <RadioGroupItem
-                value="true"
-                id={`bool-yes-${currentQuestion.id}`}
-              />
-              <Label htmlFor={`bool-yes-${currentQuestion.id}`}>はい</Label>
+          <div className="flex flex-col items-center space-y-8 py-6">
+            <div className="flex w-full max-w-xs mx-auto justify-center gap-4">
+              <div
+                className={`w-36 text-center py-4 px-6 border-2 rounded-lg cursor-pointer transition-all ${
+                  currentValue === true
+                    ? "border-primary bg-primary/10 font-medium"
+                    : "border-input hover:border-primary/50 hover:bg-accent"
+                }`}
+                onClick={() => updateAnswer(true)}
+              >
+                はい
+              </div>
+
+              <div
+                className={`w-36 text-center py-4 px-6 border-2 rounded-lg cursor-pointer transition-all ${
+                  currentValue === false
+                    ? "border-primary bg-primary/10 font-medium"
+                    : "border-input hover:border-primary/50 hover:bg-accent"
+                }`}
+                onClick={() => updateAnswer(false)}
+              >
+                いいえ
+              </div>
             </div>
-            <div className="flex items-center space-x-2">
-              <RadioGroupItem
-                value="false"
-                id={`bool-no-${currentQuestion.id}`}
-              />
-              <Label htmlFor={`bool-no-${currentQuestion.id}`}>いいえ</Label>
-            </div>
-          </RadioGroup>
+          </div>
         );
 
       default:
@@ -721,20 +826,40 @@ export default function AssessmentPage() {
           </div>
           <div className="flex items-center space-x-4">
             {/* 保存状態表示 */}
-            <div
-              className={cn(
-                "flex items-center text-xs px-2 py-1 rounded transition-colors duration-300",
-                isSaved
-                  ? "bg-green-100 text-green-700"
-                  : "bg-yellow-100 text-yellow-700 animate-pulse"
-              )}
-            >
-              {isSaved ? (
-                <CheckCircle className="h-3 w-3 mr-1" />
-              ) : (
-                <Loader2 className="h-3 w-3 mr-1 animate-spin" />
-              )}
-              {isSaved ? "保存済み" : "保存中..."}
+            <div className="flex items-center space-x-2">
+              {/* 自動保存インジケーター */}
+              <div
+                className={cn(
+                  "flex items-center text-xs px-2 py-1 rounded transition-colors duration-300",
+                  isSaved
+                    ? "bg-green-100 text-green-700"
+                    : "bg-yellow-50 text-yellow-600"
+                )}
+              >
+                {isSaved ? (
+                  <>
+                    <CheckCircle className="h-3 w-3 mr-1" />
+                    保存済み
+                  </>
+                ) : (
+                  <>
+                    <Loader2 className="h-3 w-3 mr-1 animate-spin" />
+                    自動保存中
+                  </>
+                )}
+              </div>
+
+              {/* 残り時間推定 */}
+              <div className="hidden sm:flex items-center bg-blue-50 text-blue-600 text-xs px-2 py-1 rounded">
+                <Clock className="h-3 w-3 mr-1" />
+                残り約{Math.ceil((totalQuestions - currentQuestionIndex) * 0.5)}
+                分
+              </div>
+
+              {/* 回答進捗バッジ */}
+              <div className="bg-primary/10 text-primary text-xs px-2 py-1 rounded">
+                {Math.round(progressPercentage)}% 完了
+              </div>
             </div>
             <div className="flex items-center space-x-1">
               <Clock className="h-4 w-4 text-muted-foreground" />
@@ -758,6 +883,12 @@ export default function AssessmentPage() {
           <span>{Math.round(progressPercentage)}% 完了</span>
         </div>
       </div>
+
+      {/* 推定精度表示 */}
+      <PrecisionIndicator
+        standardError={0.5} // ここは実際の標準誤差の値に置き換える
+        answeredQuestions={currentQuestionIndex + 1} // 回答済みの質問数
+      />
 
       {/* 質問カード */}
       <Card className="mb-6 shadow-md">

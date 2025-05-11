@@ -1,7 +1,13 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
 import {
   Table,
   TableBody,
@@ -70,7 +76,7 @@ const mockSurveys: Survey[] = [
     status: "active",
     type: "engagement",
     createdAt: "2025-04-01T09:00:00Z",
-    expiresAt: "2025-05-10T23:59:59Z",
+    expiresAt: "2025-05-30T23:59:59Z", // End date extended
     responsesCount: 87,
     completionRate: 68,
     priority: "high",
@@ -110,7 +116,7 @@ const mockSurveys: Survey[] = [
     status: "active",
     type: "feedback",
     createdAt: "2025-04-12T16:45:00Z",
-    expiresAt: "2025-05-05T23:59:59Z",
+    expiresAt: "2025-06-05T23:59:59Z", // End date extended
     responsesCount: 45,
     completionRate: 36,
     priority: "high",
@@ -143,6 +149,84 @@ const mockSurveys: Survey[] = [
     priority: "low",
     estimatedTime: "12分",
     isCompleted: true,
+  },
+  {
+    id: 7,
+    title: "職場環境改善調査",
+    description: "オフィス環境やリモートワーク環境の改善に関する調査",
+    status: "active",
+    type: "feedback",
+    createdAt: "2025-04-15T10:00:00Z",
+    expiresAt: "2025-06-15T23:59:59Z",
+    responsesCount: 23,
+    completionRate: 18,
+    priority: "medium",
+    estimatedTime: "8分",
+  },
+  {
+    id: 8,
+    title: "チームビルディング調査",
+    description: "チーム連携と協働に関する意識調査",
+    status: "active",
+    type: "engagement",
+    createdAt: "2025-04-20T13:30:00Z",
+    expiresAt: "2025-05-25T23:59:59Z",
+    responsesCount: 42,
+    completionRate: 31,
+    priority: "high",
+    estimatedTime: "7分",
+  },
+  {
+    id: 9,
+    title: "テクノロジーニーズ調査",
+    description: "業務効率化のための新しいツールやテクノロジーに関する要望調査",
+    status: "active",
+    type: "assessment",
+    createdAt: "2025-04-25T09:45:00Z",
+    expiresAt: "2025-06-10T23:59:59Z",
+    responsesCount: 15,
+    completionRate: 12,
+    priority: "medium",
+    estimatedTime: "10分",
+  },
+  {
+    id: 10,
+    title: "メンタルヘルス調査",
+    description: "職場でのストレスとメンタルヘルスに関する実態調査",
+    status: "active",
+    type: "satisfaction",
+    createdAt: "2025-05-01T11:00:00Z",
+    expiresAt: "2025-05-31T23:59:59Z",
+    responsesCount: 30,
+    completionRate: 24,
+    priority: "high",
+    estimatedTime: "12分",
+  },
+  {
+    id: 11,
+    title: "社内研修フィードバック",
+    description: "最近実施した社内研修の効果と改善点に関する調査",
+    status: "active",
+    type: "feedback",
+    createdAt: "2025-05-05T14:15:00Z",
+    expiresAt: "2025-06-05T23:59:59Z",
+    responsesCount: 8,
+    completionRate: 6,
+    priority: "low",
+    estimatedTime: "5分",
+  },
+  {
+    id: 12,
+    title: "1on1ミーティング評価",
+    description: "定期的な1on1ミーティングの効果と改善点に関する調査",
+    status: "active",
+    type: "assessment",
+    createdAt: "2025-05-08T10:30:00Z",
+    expiresAt: "2025-06-08T23:59:59Z",
+    responsesCount: 12,
+    completionRate: 9,
+    priority: "medium",
+    estimatedTime: "7分",
   },
 ];
 
@@ -244,45 +328,64 @@ export default function SurveyList() {
 
   const getStatusBadgeStyle = (status: SurveyStatus) => {
     switch (status) {
-      case "active": return "bg-green-100 text-green-800 hover:bg-green-200";
-      case "draft": return "bg-gray-100 text-gray-800 hover:bg-gray-200";
-      case "completed": return "bg-blue-100 text-blue-800 hover:bg-blue-200";
-      case "expired": return "bg-red-100 text-red-800 hover:bg-red-200";
+      case "active":
+        return "bg-green-100 text-green-800 hover:bg-green-200";
+      case "draft":
+        return "bg-gray-100 text-gray-800 hover:bg-gray-200";
+      case "completed":
+        return "bg-blue-100 text-blue-800 hover:bg-blue-200";
+      case "expired":
+        return "bg-red-100 text-red-800 hover:bg-red-200";
     }
   };
 
   const getStatusLabel = (status: SurveyStatus) => {
     switch (status) {
-      case "active": return "実施中";
-      case "draft": return "下書き";
-      case "completed": return "完了";
-      case "expired": return "期限切れ";
+      case "active":
+        return "実施中";
+      case "draft":
+        return "下書き";
+      case "completed":
+        return "完了";
+      case "expired":
+        return "期限切れ";
     }
   };
 
   const getTypeLabel = (type: SurveyType) => {
     switch (type) {
-      case "engagement": return "エンゲージメント";
-      case "feedback": return "フィードバック";
-      case "satisfaction": return "満足度";
-      case "assessment": return "アセスメント";
-      case "other": return "その他";
+      case "engagement":
+        return "エンゲージメント";
+      case "feedback":
+        return "フィードバック";
+      case "satisfaction":
+        return "満足度";
+      case "assessment":
+        return "アセスメント";
+      case "other":
+        return "その他";
     }
   };
 
   const getPriorityBadgeStyle = (priority: "high" | "medium" | "low") => {
     switch (priority) {
-      case "high": return "bg-red-100 text-red-800 hover:bg-red-200";
-      case "medium": return "bg-yellow-100 text-yellow-800 hover:bg-yellow-200";
-      case "low": return "bg-green-100 text-green-800 hover:bg-green-200";
+      case "high":
+        return "bg-red-100 text-red-800 hover:bg-red-200";
+      case "medium":
+        return "bg-yellow-100 text-yellow-800 hover:bg-yellow-200";
+      case "low":
+        return "bg-green-100 text-green-800 hover:bg-green-200";
     }
   };
 
   const getPriorityLabel = (priority: "high" | "medium" | "low") => {
     switch (priority) {
-      case "high": return "高";
-      case "medium": return "中";
-      case "low": return "低";
+      case "high":
+        return "高";
+      case "medium":
+        return "中";
+      case "low":
+        return "低";
     }
   };
 
@@ -299,12 +402,8 @@ export default function SurveyList() {
     <div className="p-6 max-w-7xl mx-auto">
       <Card>
         <CardHeader>
-          <CardTitle className="text-2xl">
-            サーベイ一覧
-          </CardTitle>
-          <CardDescription>
-            利用可能なサーベイと回答状況の管理
-          </CardDescription>
+          <CardTitle className="text-2xl">サーベイ一覧</CardTitle>
+          <CardDescription>利用可能なサーベイと回答状況の管理</CardDescription>
         </CardHeader>
         <CardContent>
           <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-6">
@@ -314,8 +413,9 @@ export default function SurveyList() {
                 未回答
                 <Badge variant="secondary" className="ml-2">
                   {
-                    surveys.filter((s) => s.status === "active" && !s.isCompleted)
-                      .length
+                    surveys.filter(
+                      (s) => s.status === "active" && !s.isCompleted
+                    ).length
                   }
                 </Badge>
               </TabsTrigger>
@@ -365,39 +465,83 @@ export default function SurveyList() {
             </Select>
           </div>
 
-          <Card> {/* Inner card for the table */}
+          <Card>
+            {" "}
+            {/* Inner card for the table */}
             <CardContent className="p-0">
               <Table>
                 <TableHeader>
                   <TableRow>
                     <TableHead className="w-[300px]">
-                      <Button variant="ghost" className="p-0 h-auto font-medium hover:bg-transparent" onClick={() => toggleSort("title")}>
-                        タイトル {sortField === "title" && <ArrowUpDown className="ml-2 h-3 w-3 inline" />}
+                      <Button
+                        variant="ghost"
+                        className="p-0 h-auto font-medium hover:bg-transparent"
+                        onClick={() => toggleSort("title")}
+                      >
+                        タイトル{" "}
+                        {sortField === "title" && (
+                          <ArrowUpDown className="ml-2 h-3 w-3 inline" />
+                        )}
                       </Button>
                     </TableHead>
                     <TableHead>
-                      <Button variant="ghost" className="p-0 h-auto font-medium hover:bg-transparent" onClick={() => toggleSort("status")}>
-                        ステータス {sortField === "status" && <ArrowUpDown className="ml-2 h-3 w-3 inline" />}
+                      <Button
+                        variant="ghost"
+                        className="p-0 h-auto font-medium hover:bg-transparent"
+                        onClick={() => toggleSort("status")}
+                      >
+                        ステータス{" "}
+                        {sortField === "status" && (
+                          <ArrowUpDown className="ml-2 h-3 w-3 inline" />
+                        )}
                       </Button>
                     </TableHead>
                     <TableHead>
-                      <Button variant="ghost" className="p-0 h-auto font-medium hover:bg-transparent" onClick={() => toggleSort("type")}>
-                        種類 {sortField === "type" && <ArrowUpDown className="ml-2 h-3 w-3 inline" />}
+                      <Button
+                        variant="ghost"
+                        className="p-0 h-auto font-medium hover:bg-transparent"
+                        onClick={() => toggleSort("type")}
+                      >
+                        種類{" "}
+                        {sortField === "type" && (
+                          <ArrowUpDown className="ml-2 h-3 w-3 inline" />
+                        )}
                       </Button>
                     </TableHead>
                     <TableHead>
-                      <Button variant="ghost" className="p-0 h-auto font-medium hover:bg-transparent" onClick={() => toggleSort("priority")}>
-                        優先度 {sortField === "priority" && <ArrowUpDown className="ml-2 h-3 w-3 inline" />}
+                      <Button
+                        variant="ghost"
+                        className="p-0 h-auto font-medium hover:bg-transparent"
+                        onClick={() => toggleSort("priority")}
+                      >
+                        優先度{" "}
+                        {sortField === "priority" && (
+                          <ArrowUpDown className="ml-2 h-3 w-3 inline" />
+                        )}
                       </Button>
                     </TableHead>
                     <TableHead>
-                      <Button variant="ghost" className="p-0 h-auto font-medium hover:bg-transparent" onClick={() => toggleSort("expiresAt")}>
-                        期限 {sortField === "expiresAt" && <ArrowUpDown className="ml-2 h-3 w-3 inline" />}
+                      <Button
+                        variant="ghost"
+                        className="p-0 h-auto font-medium hover:bg-transparent"
+                        onClick={() => toggleSort("expiresAt")}
+                      >
+                        期限{" "}
+                        {sortField === "expiresAt" && (
+                          <ArrowUpDown className="ml-2 h-3 w-3 inline" />
+                        )}
                       </Button>
                     </TableHead>
                     <TableHead>
-                      <Button variant="ghost" className="p-0 h-auto font-medium hover:bg-transparent" onClick={() => toggleSort("completionRate")}>
-                        回答率 {sortField === "completionRate" && <ArrowUpDown className="ml-2 h-3 w-3 inline" />}
+                      <Button
+                        variant="ghost"
+                        className="p-0 h-auto font-medium hover:bg-transparent"
+                        onClick={() => toggleSort("completionRate")}
+                      >
+                        回答率{" "}
+                        {sortField === "completionRate" && (
+                          <ArrowUpDown className="ml-2 h-3 w-3 inline" />
+                        )}
                       </Button>
                     </TableHead>
                     {/* <TableHead className="text-right">アクション</TableHead> Removed Action column header */}
@@ -406,8 +550,8 @@ export default function SurveyList() {
                 <TableBody>
                   {filteredSurveys.length > 0 ? (
                     filteredSurveys.map((survey) => (
-                      <TableRow 
-                        key={survey.id} 
+                      <TableRow
+                        key={survey.id}
                         onClick={() => handleViewSurveyDetails(survey.id)}
                         className="cursor-pointer hover:bg-muted/50"
                       >
@@ -415,7 +559,10 @@ export default function SurveyList() {
                           <div>
                             {survey.title}
                             {survey.isCompleted && (
-                              <Badge variant="outline" className="ml-2 text-xs bg-green-50 border-green-300 text-green-700">
+                              <Badge
+                                variant="outline"
+                                className="ml-2 text-xs bg-green-50 border-green-300 text-green-700"
+                              >
                                 <CheckCircle className="h-3 w-3 mr-1" />
                                 回答済み
                               </Badge>
@@ -438,7 +585,9 @@ export default function SurveyList() {
                         </TableCell>
                         <TableCell>{getTypeLabel(survey.type)}</TableCell>
                         <TableCell>
-                          <Badge className={getPriorityBadgeStyle(survey.priority)}>
+                          <Badge
+                            className={getPriorityBadgeStyle(survey.priority)}
+                          >
                             {getPriorityLabel(survey.priority)}
                           </Badge>
                         </TableCell>
@@ -449,12 +598,13 @@ export default function SurveyList() {
                               {formatDate(survey.expiresAt)}
                             </span>
                           </div>
-                          {new Date(survey.expiresAt) < new Date() && survey.status !== 'completed' && (
-                            <div className="flex items-center mt-1 text-red-600 text-xs">
-                              <AlertCircle className="h-3 w-3 mr-1" />
-                              期限切れ
-                            </div>
-                          )}
+                          {new Date(survey.expiresAt) < new Date() &&
+                            survey.status !== "completed" && (
+                              <div className="flex items-center mt-1 text-red-600 text-xs">
+                                <AlertCircle className="h-3 w-3 mr-1" />
+                                期限切れ
+                              </div>
+                            )}
                         </TableCell>
                         <TableCell>
                           <div className="flex items-center">
@@ -477,7 +627,9 @@ export default function SurveyList() {
                     ))
                   ) : (
                     <TableRow>
-                      <TableCell colSpan={6} className="text-center py-8"> {/* Adjusted colSpan from 7 to 6 */}
+                      <TableCell colSpan={6} className="text-center py-8">
+                        {" "}
+                        {/* Adjusted colSpan from 7 to 6 */}
                         <div className="flex flex-col items-center justify-center">
                           <HelpCircle className="h-8 w-8 text-muted-foreground mb-2" />
                           <p className="text-lg font-medium">
