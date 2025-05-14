@@ -47,6 +47,7 @@ import {
   ArrowLeft,
   Loader2,
 } from "lucide-react";
+import { allMockAssessments, type Assessment } from "./Assessment"; // Import mock assessments and Assessment type
 
 // --- Mock Data Types ---
 
@@ -71,30 +72,68 @@ interface AssessmentResult {
 }
 
 // --- Mock Data Generation ---
-const generateMockResult = (id: number): AssessmentResult => {
-  const categories = [
+const generateMockResult = (currentAssessment: Assessment): AssessmentResult => {
+  const { id, title, questions } = currentAssessment;
+  console.log(`[generateMockResult] Generating for Assessment ID: ${id}, Title: ${title}`);
+
+  const defaultCategories = [
     "論理思考",
     "コミュニケーション",
     "問題解決",
     "協調性",
     "リーダーシップ",
   ];
-  const scores: CategoryScore[] = categories.map((cat) => ({
+  
+  let resultCategories: string[] = [];
+
+  if (questions && questions.length > 0) {
+    if (id === 201) { // Specifically for AI Literacy assessment (ID 201)
+      const aiMajorCategories = Array.from(new Set(questions.map(q => q.majorCategory).filter(Boolean) as string[]));
+      if (aiMajorCategories.length > 0) {
+        resultCategories = aiMajorCategories;
+        console.log(`[generateMockResult] ID 201: Using majorCategories:`, resultCategories);
+      } else {
+        console.warn(`[generateMockResult] ID 201: No valid majorCategories found in questions. Falling back to default categories.`);
+        resultCategories = defaultCategories;
+      }
+    } else { // For other assessments (not ID 201)
+      const questionSpecificCategories = Array.from(new Set(questions.map(q => q.category).filter(Boolean) as string[]));
+      if (questionSpecificCategories.length > 0) {
+        resultCategories = questionSpecificCategories;
+        console.log(`[generateMockResult] ID ${id}: Using question-specific categories:`, resultCategories);
+      } else {
+        console.warn(`[generateMockResult] ID ${id}: No valid categories found in questions. Falling back to default categories.`);
+        resultCategories = defaultCategories;
+      }
+    }
+  } else {
+     console.warn(`[generateMockResult] Assessment ID ${id} (${title}) has no questions. Using default categories for results.`);
+     resultCategories = defaultCategories;
+  }
+
+  // Ensure there's at least one category to prevent division by zero or empty results
+  if (resultCategories.length === 0) {
+    console.warn(`[generateMockResult] No categories determined for assessment ${id}. Using default categories as a final fallback.`);
+    resultCategories = defaultCategories;
+  }
+
+  const scores: CategoryScore[] = resultCategories.map((cat) => ({
     category: cat,
     score: Math.floor(Math.random() * 61) + 40, // 40-100
     average: Math.floor(Math.random() * 21) + 55, // 55-75
     previous: Math.floor(Math.random() * 41) + 45, // 45-85
   }));
 
-  const overall = Math.round(
-    scores.reduce((sum, s) => sum + s.score, 0) / scores.length
-  );
+  const overall = scores.length > 0 
+    ? Math.round(scores.reduce((sum, s) => sum + s.score, 0) / scores.length)
+    : Math.floor(Math.random() * 61) + 40; // Fallback overall score if no categories
+
   const strengths = scores.filter((s) => s.score >= 75).map((s) => s.category);
   const weaknesses = scores.filter((s) => s.score < 60).map((s) => s.category);
 
-  return {
+  const generatedResultData = {
     assessmentId: id,
-    assessmentTitle: `総合スキルアセスメント (ID: ${id})`,
+    assessmentTitle: title,
     completedDate: new Date().toLocaleDateString("ja-JP"),
     overallScore: overall,
     summary: `全体スコアは ${overall} 点です。${
@@ -130,15 +169,17 @@ const generateMockResult = (id: number): AssessmentResult => {
           ]
         : []),
     ],
-    detailedFeedback: `今回の${
-      id === 101 ? "総合スキルアセスメント" : "アセスメント"
-    }では、あなたの多面的な能力が評価されました。特に${strengths.join(
+    detailedFeedback: `今回の${title}では、あなたの多面的な能力が評価されました。${strengths.length > 0 ? `特に${strengths.join(
       "と"
-    )}の分野で高いポテンシャルが示されています。一方で、${weaknesses.join(
+    )}の分野で高いポテンシャルが示されています。` : ''} ${weaknesses.length > 0 ? `一方で、${weaknesses.join(
       "や"
-    )}については、さらなる学習と実践を通じて伸ばしていくことが期待されます。推奨されるリソースを活用し、継続的なスキルアップを目指しましょう。`,
+    )}については、さらなる学習と実践を通じて伸ばしていくことが期待されます。` : ''}推奨されるリソースを活用し、継続的なスキルアップを目指しましょう。`,
   };
+  // Log only category scores for brevity, as it's often the most critical part for "mismatch"
+  console.log(`[generateMockResult] Final generated categoryScores for ID ${id}:`, JSON.parse(JSON.stringify(generatedResultData.categoryScores)));
+  return generatedResultData;
 };
+
 
 // --- Chart Configuration ---
 const categoryChartConfig = {
@@ -148,7 +189,7 @@ const categoryChartConfig = {
 } satisfies ChartConfig;
 
 export default function AssessmentResults() {
-  const { id } = useParams<{ id: string }>();
+  const { assessmentId } = useParams<{ assessmentId: string }>();
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -159,38 +200,69 @@ export default function AssessmentResults() {
     const fetchResult = async () => {
       setLoading(true);
       try {
-        // Simulate API call delay
-        await new Promise((resolve) => setTimeout(resolve, 500));
+        await new Promise((resolve) => setTimeout(resolve, 500)); // Simulate API call
 
-        const assessmentId = parseInt(id || "0", 10);
-        if (isNaN(assessmentId) || assessmentId <= 0) {
+        const assessmentIdNum = parseInt(assessmentId || "0", 10);
+        console.log(`[AssessmentResults] Received assessmentId from URL: ${assessmentId}, Parsed to: ${assessmentIdNum}`);
+
+        if (isNaN(assessmentIdNum) || assessmentIdNum <= 0) {
+          console.error(`[AssessmentResults] Invalid assessmentId from URL: ${assessmentId}`);
           throw new Error("無効なアセスメントIDです。");
         }
-        const mockResult = generateMockResult(assessmentId);
+        
+        const currentAssessment = allMockAssessments.find(a => a.id === assessmentIdNum);
+        if (!currentAssessment) {
+          console.error(`[AssessmentResults] Assessment with ID ${assessmentIdNum} not found in allMockAssessments. Available IDs: ${allMockAssessments.map(a => a.id).join(', ')}`);
+          throw new Error(`ID ${assessmentIdNum} のアセスメントが見つかりません。`);
+        }
+        
+        console.log(`[AssessmentResults] Found assessment: ID=${currentAssessment.id}, Title=${currentAssessment.title}, Number of questions: ${currentAssessment.questions?.length || 0}`);
+        
+        if (currentAssessment.questions && currentAssessment.questions.length > 0) {
+          console.log(`[AssessmentResults] First 5 questions for assessment ${currentAssessment.id}:`);
+          currentAssessment.questions.slice(0, 5).forEach(q => {
+            console.log(`  - QID ${q.id}: Text="${q.text.substring(0,30)}...", Category="${q.category}", MajorCategory="${q.majorCategory}"`);
+          });
+        } else {
+          console.log(`[AssessmentResults] No questions found for assessment ${currentAssessment.id}`);
+        }
+
+        const mockResult = generateMockResult(currentAssessment);
+        // Log the full mockResult to see all generated data
+        console.log(`[AssessmentResults] Generated full mockResult for ${currentAssessment.title}:`, JSON.parse(JSON.stringify(mockResult)));
         setResult(mockResult);
+
       } catch (error) {
-        console.error("アセスメント結果の取得に失敗しました", error);
+        console.error("[AssessmentResults] アセスメント結果の取得に失敗しました", error);
+        const errorMessage = error instanceof Error ? error.message : "結果データの取得に失敗しました。";
         toast({
           title: "エラー",
-          description: "結果データの取得に失敗しました。",
+          description: errorMessage,
           variant: "destructive",
         });
-        // Optionally navigate back on error
-        // navigate("/assessments/results");
+        setResult(null); // Ensure result is cleared on error
       } finally {
         setLoading(false);
       }
     };
 
-    fetchResult();
-  }, [id, toast, navigate]);
+    if (assessmentId) {
+      fetchResult();
+    } else {
+      console.error("[AssessmentResults] assessmentId is undefined in useEffect dependency. This should not happen if routing is correct.");
+      toast({
+        title: "エラー",
+        description: "アセスメントIDが指定されていません。ルート設定を確認してください。",
+        variant: "destructive",
+      });
+      setLoading(false);
+    }
+  }, [assessmentId, toast, navigate]);
 
-  // Print handler
   const handlePrint = () => {
     window.print();
   };
 
-  // PDF download handler (via print dialog)
   const handleDownloadPdf = () => {
     toast({
       title: "PDFとして保存",
@@ -200,7 +272,6 @@ export default function AssessmentResults() {
     window.print();
   };
 
-  // Loading state
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[calc(100vh-4rem)] p-6">
@@ -212,15 +283,14 @@ export default function AssessmentResults() {
     );
   }
 
-  // No result found state
   if (!result) {
     return (
       <div className="p-6 max-w-4xl mx-auto text-center">
         <Card>
           <CardHeader>
-            <CardTitle>アセスメント結果が見つかりません</CardTitle>
+            <CardTitle>アセスメント結果の表示エラー</CardTitle>
             <CardDescription>
-              指定されたアセスメントの結果が見つかりませんでした。
+              アセスメント結果の読み込みまたは生成に問題が発生しました。コンソールで詳細を確認するか、一覧に戻って再試行してください。
             </CardDescription>
           </CardHeader>
           <CardFooter className="justify-center">
@@ -234,10 +304,8 @@ export default function AssessmentResults() {
     );
   }
 
-  // --- Render Component ---
   return (
     <div className="p-6 max-w-7xl mx-auto space-y-6 print:p-0 print:space-y-4">
-      {/* Header and Action Buttons */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6 print:hidden">
         <div>
           <Button
@@ -268,7 +336,6 @@ export default function AssessmentResults() {
         </div>
       </div>
 
-      {/* Overall Score and Summary */}
       <Card className="print:shadow-none print:border-none">
         <CardHeader>
           <CardTitle className="text-xl flex items-center">
@@ -291,7 +358,6 @@ export default function AssessmentResults() {
         </CardContent>
       </Card>
 
-      {/* Category Scores Chart */}
       <Card className="print:shadow-none print:border-none">
         <CardHeader>
           <CardTitle className="text-xl">カテゴリ別スコア</CardTitle>
@@ -315,6 +381,7 @@ export default function AssessmentResults() {
                   tickLine={false}
                   axisLine={false}
                   tickMargin={8}
+                  interval={0} 
                 />
                 <YAxis domain={[0, 100]} />
                 <ChartTooltip
@@ -346,7 +413,6 @@ export default function AssessmentResults() {
         </CardContent>
       </Card>
 
-      {/* Strengths and Weaknesses */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <Card className="print:shadow-none print:border-none">
           <CardHeader>
@@ -380,7 +446,6 @@ export default function AssessmentResults() {
         </Card>
       </div>
 
-      {/* Recommended Learning Resources */}
       <Card className="print:shadow-none print:border-none">
         <CardHeader>
           <CardTitle className="text-xl flex items-center">
@@ -429,7 +494,6 @@ export default function AssessmentResults() {
         </CardContent>
       </Card>
 
-      {/* Detailed Feedback */}
       <Card className="print:shadow-none print:border-none">
         <CardHeader>
           <CardTitle className="text-xl flex items-center">
@@ -444,7 +508,6 @@ export default function AssessmentResults() {
         </CardContent>
       </Card>
 
-      {/* Future Review Placeholder */}
       <Card className="bg-gray-50 print:hidden">
         <CardHeader>
           <CardTitle className="text-lg flex items-center">
