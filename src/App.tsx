@@ -1,9 +1,8 @@
 import { useNavigate, useLocation, Outlet } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import {
-  BarChart3,
+  // BarChart3, // Removed as Dashboard is being removed
   FileText,
-  BarChart4,
   ChevronDown,
   ChevronRight,
   Menu,
@@ -13,7 +12,7 @@ import { useState } from "react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 
 const sidebarItems = [
-  { icon: BarChart3, label: "ダッシュボード", path: "/" },
+  // { icon: BarChart3, label: "ダッシュボード", path: "/" }, // Dashboard section removed
   {
     icon: FileText,
     label: "アセスメント",
@@ -21,15 +20,6 @@ const sidebarItems = [
     subItems: [
       { label: "アセスメント一覧", path: "/assessments" },
       { label: "結果一覧", path: "/assessments/results" },
-    ],
-  },
-  {
-    icon: BarChart4,
-    label: "サーベイ",
-    basePath: "/surveys",
-    subItems: [
-      { label: "サーベイ一覧", path: "/surveys" },
-      { label: "結果一覧", path: "/surveys/results" },
     ],
   },
   { icon: Settings, label: "設定", path: "/settings" },
@@ -68,22 +58,13 @@ function Layout() {
     ) {
       return true;
     }
-    if (
-      path === "/surveys" &&
-      (currentPath.startsWith("/surveys/take/") ||
-        currentPath.startsWith("/surveys/detail/"))
-    ) {
-      return true;
-    }
-    if (
-      path === "/surveys/results" &&
-      currentPath.startsWith("/surveys/results/")
-    ) {
-      return true;
-    }
     if (path === "/settings" && currentPath === "/settings") {
       return true;
     }
+    // Removed dashboard active check as it's removed
+    // if (path === "/" && currentPath === "/") {
+    //   return true;
+    // }
 
     return false;
   };
@@ -107,14 +88,12 @@ function Layout() {
   };
 
   const isTakingAssessment = currentPath.startsWith("/assessments/take/");
-  const isTakingSurvey = currentPath.startsWith("/surveys/take/");
-
-  const showDesktopSidebar = !isTakingAssessment && !isTakingSurvey;
+  const showDesktopSidebar = !isTakingAssessment;
 
   const SidebarContent = () => (
     <div className="flex flex-col h-full">
       <div className="p-4 border-b">
-        <h1 className="text-xl font-semibold text-gray-900">User Mock</h1>
+        <h1 className="text-xl font-semibold text-gray-900">企業一般ユーザー</h1>
       </div>
       <nav className="flex-grow p-4 overflow-y-auto">
         {sidebarItems.map((item, index) => (

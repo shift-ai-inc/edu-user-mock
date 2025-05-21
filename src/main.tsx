@@ -2,19 +2,19 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { createBrowserRouter, RouterProvider, RouteObject } from 'react-router-dom';
 import { Layout } from './App';
-import Dashboard from './pages/Dashboard';
+// import Dashboard from './pages/Dashboard'; // Removed Dashboard import
 import AssessmentList from './pages/AssessmentList';
 import AssessmentPage from './pages/Assessment';
 import AssessmentResultsList from './pages/AssessmentResultsList';
 import AssessmentResults from './pages/AssessmentResults';
-import AssessmentDetailPage from './pages/AssessmentDetailPage'; // Added for completeness
+import AssessmentDetailPage from './pages/AssessmentDetailPage'; 
 import SurveyList from './pages/SurveyList';
 import SurveyResultsList from './pages/SurveyResultsList';
-import SurveyDetailPage from './pages/SurveyDetailPage'; // Added for completeness
-import TakeSurvey from './pages/TakeSurvey'; // Added for completeness
+import SurveyDetailPage from './pages/SurveyDetailPage'; 
+import TakeSurvey from './pages/TakeSurvey'; 
 import SettingsPage from './pages/SettingsPage';
-import LoginPage from './pages/LoginPage'; // Assuming you have a login page
-import PasswordResetPage from './pages/PasswordResetPage'; // Assuming this page
+import LoginPage from './pages/LoginPage'; 
+import PasswordResetPage from './pages/PasswordResetPage'; 
 
 import './index.css'; // Global styles
 import { Toaster } from "@/components/ui/toaster";
@@ -24,14 +24,14 @@ const routes: RouteObject[] = [
     path: "/",
     element: <Layout />,
     children: [
-      { index: true, element: <Dashboard /> },
+      { index: true, element: <AssessmentList /> }, // Changed to AssessmentList
       {
         path: "assessments",
         children: [
           { index: true, element: <AssessmentList /> },
           { path: "take/:assessmentId", element: <AssessmentPage /> },
           { path: "results", element: <AssessmentResultsList /> },
-          { path: "results/:assessmentId", element: <AssessmentResults /> }, // Ensures :assessmentId is used
+          { path: "results/:assessmentId", element: <AssessmentResults /> }, 
           { path: "detail/:assessmentId", element: <AssessmentDetailPage /> },
         ],
       },
@@ -39,20 +39,17 @@ const routes: RouteObject[] = [
         path: "surveys",
         children: [
           { index: true, element: <SurveyList /> },
-          { path: "take/:surveyId", element: <TakeSurvey /> }, // Matched param name with component if needed
+          { path: "take/:surveyId", element: <TakeSurvey /> }, 
           { path: "results", element: <SurveyResultsList /> },
-          { path: "results/:surveyResultId", element: <SurveyDetailPage /> }, // Example, adjust if SurveyResultDetail page exists
+          { path: "results/:surveyResultId", element: <SurveyDetailPage /> }, 
           { path: "detail/:surveyId", element: <SurveyDetailPage /> },
         ],
       },
       { path: "settings", element: <SettingsPage /> },
-      // Add other pages accessible within the Layout if any
-      // e.g. Profile, Company Management etc. based on your sidebar/navigation needs
     ],
   },
-  { path: "/login", element: <LoginPage /> }, // Login page outside main layout
-  { path: "/password-reset", element: <PasswordResetPage /> }, // Password reset outside main layout
-  // Add any other top-level routes here
+  { path: "/login", element: <LoginPage /> }, 
+  { path: "/password-reset", element: <PasswordResetPage /> }, 
 ];
 
 const router = createBrowserRouter(routes);

@@ -71,113 +71,47 @@ interface AssessmentResult {
   detailedFeedback: string;
 }
 
-// --- Mock Data Generation ---
+// --- Mock Data Generation (Simplified for Debugging) ---
 const generateMockResult = (currentAssessment: Assessment): AssessmentResult => {
-  const { id, title, questions } = currentAssessment;
-  console.log(`[generateMockResult] Generating for Assessment ID: ${id}, Title: ${title}`);
+  const { id, title } = currentAssessment;
+  console.log(`[generateMockResult] Generating SIMPLIFIED result for Assessment ID: ${id}, Title: ${title}`);
 
-  const defaultCategories = [
-    "論理思考",
-    "コミュニケーション",
-    "問題解決",
-    "協調性",
-    "リーダーシップ",
+  const simplifiedCategories: CategoryScore[] = [
+    { category: "簡易カテゴリA", score: Math.floor(Math.random() * 51) + 50, average: Math.floor(Math.random() * 21) + 55, previous: Math.floor(Math.random() * 41) + 45 },
+    { category: "簡易カテゴリB", score: Math.floor(Math.random() * 51) + 50, average: Math.floor(Math.random() * 21) + 55, previous: Math.floor(Math.random() * 41) + 45 },
+    { category: "簡易カテゴリC", score: Math.floor(Math.random() * 51) + 50, average: Math.floor(Math.random() * 21) + 55, previous: Math.floor(Math.random() * 41) + 45 },
   ];
-  
-  let resultCategories: string[] = [];
 
-  if (questions && questions.length > 0) {
-    if (id === 201) { // Specifically for AI Literacy assessment (ID 201)
-      const aiMajorCategories = Array.from(new Set(questions.map(q => q.majorCategory).filter(Boolean) as string[]));
-      if (aiMajorCategories.length > 0) {
-        resultCategories = aiMajorCategories;
-        console.log(`[generateMockResult] ID 201: Using majorCategories:`, resultCategories);
-      } else {
-        console.warn(`[generateMockResult] ID 201: No valid majorCategories found in questions. Falling back to default categories.`);
-        resultCategories = defaultCategories;
-      }
-    } else { // For other assessments (not ID 201)
-      const questionSpecificCategories = Array.from(new Set(questions.map(q => q.category).filter(Boolean) as string[]));
-      if (questionSpecificCategories.length > 0) {
-        resultCategories = questionSpecificCategories;
-        console.log(`[generateMockResult] ID ${id}: Using question-specific categories:`, resultCategories);
-      } else {
-        console.warn(`[generateMockResult] ID ${id}: No valid categories found in questions. Falling back to default categories.`);
-        resultCategories = defaultCategories;
-      }
-    }
-  } else {
-     console.warn(`[generateMockResult] Assessment ID ${id} (${title}) has no questions. Using default categories for results.`);
-     resultCategories = defaultCategories;
-  }
+  const overall = simplifiedCategories.length > 0 
+    ? Math.round(simplifiedCategories.reduce((sum, s) => sum + s.score, 0) / simplifiedCategories.length)
+    : 50;
 
-  // Ensure there's at least one category to prevent division by zero or empty results
-  if (resultCategories.length === 0) {
-    console.warn(`[generateMockResult] No categories determined for assessment ${id}. Using default categories as a final fallback.`);
-    resultCategories = defaultCategories;
-  }
+  const strengthsList = simplifiedCategories.filter(s => s.score > 70).map(s => s.category);
+  const weaknessesList = simplifiedCategories.filter(s => s.score <= 70).map(s => s.category);
 
-  const scores: CategoryScore[] = resultCategories.map((cat) => ({
-    category: cat,
-    score: Math.floor(Math.random() * 61) + 40, // 40-100
-    average: Math.floor(Math.random() * 21) + 55, // 55-75
-    previous: Math.floor(Math.random() * 41) + 45, // 45-85
-  }));
-
-  const overall = scores.length > 0 
-    ? Math.round(scores.reduce((sum, s) => sum + s.score, 0) / scores.length)
-    : Math.floor(Math.random() * 61) + 40; // Fallback overall score if no categories
-
-  const strengths = scores.filter((s) => s.score >= 75).map((s) => s.category);
-  const weaknesses = scores.filter((s) => s.score < 60).map((s) => s.category);
-
-  const generatedResultData = {
-    assessmentId: id,
-    assessmentTitle: title,
+  return {
+    assessmentId: id, 
+    assessmentTitle: title, 
     completedDate: new Date().toLocaleDateString("ja-JP"),
     overallScore: overall,
-    summary: `全体スコアは ${overall} 点です。${
-      strengths.length > 0 ? strengths.join("、") + "に強みが見られます。" : ""
-    }${
-      weaknesses.length > 0
-        ? weaknesses.join("、") + "の領域で改善の余地があります。"
-        : ""
-    }`,
-    categoryScores: scores,
-    strengths:
-      strengths.length > 0 ? strengths : ["特筆すべき強みはありません"],
-    weaknesses:
-      weaknesses.length > 0 ? weaknesses : ["特筆すべき弱みはありません"],
+    summary: `これは ${title} の総合評価です。全体スコアは ${overall} 点です。この結果は現在、汎用的なカテゴリを使用して表示されています。`,
+    categoryScores: simplifiedCategories,
+    strengths: strengthsList.length > 0 ? strengthsList : ["特筆すべき強みはありません (簡易版)"],
+    weaknesses: weaknessesList.length > 0 ? weaknessesList : ["特筆すべき弱みはありません (簡易版)"],
     recommendations: [
       {
-        title: "論理思考力向上のためのオンラインコース",
-        description: "データ分析とクリティカルシンキングを強化します。",
+        title: "学習リソース (簡易版)",
+        description: "このリソースは汎用的なプレースホルダーです。",
         link: "#",
       },
       {
-        title: "効果的なコミュニケーション研修",
-        description: "プレゼンテーションと対人スキルを向上させます。",
+        title: "次のステップ (簡易版)",
+        description: "さらなるスキルアップを目指しましょう。",
         link: "#",
       },
-      ...(weaknesses.includes("問題解決")
-        ? [
-            {
-              title: "問題解決ワークショップ",
-              description: "実践的なケーススタディを通じて解決能力を養います。",
-              link: "#",
-            },
-          ]
-        : []),
     ],
-    detailedFeedback: `今回の${title}では、あなたの多面的な能力が評価されました。${strengths.length > 0 ? `特に${strengths.join(
-      "と"
-    )}の分野で高いポテンシャルが示されています。` : ''} ${weaknesses.length > 0 ? `一方で、${weaknesses.join(
-      "や"
-    )}については、さらなる学習と実践を通じて伸ばしていくことが期待されます。` : ''}推奨されるリソースを活用し、継続的なスキルアップを目指しましょう。`,
+    detailedFeedback: `これは ${title} に関する詳細フィードバックのプレースホルダーです。各カテゴリのスコアを確認し、強みを伸ばし弱点を補強するための学習計画を立てましょう。`,
   };
-  // Log only category scores for brevity, as it's often the most critical part for "mismatch"
-  console.log(`[generateMockResult] Final generated categoryScores for ID ${id}:`, JSON.parse(JSON.stringify(generatedResultData.categoryScores)));
-  return generatedResultData;
 };
 
 
@@ -200,7 +134,7 @@ export default function AssessmentResults() {
     const fetchResult = async () => {
       setLoading(true);
       try {
-        await new Promise((resolve) => setTimeout(resolve, 500)); // Simulate API call
+        await new Promise((resolve) => setTimeout(resolve, 500)); 
 
         const assessmentIdNum = parseInt(assessmentId || "0", 10);
         console.log(`[AssessmentResults] Received assessmentId from URL: ${assessmentId}, Parsed to: ${assessmentIdNum}`);
@@ -210,9 +144,14 @@ export default function AssessmentResults() {
           throw new Error("無効なアセスメントIDです。");
         }
         
+        // ADDED LOGGING HERE:
+        console.log("[AssessmentResults] Inspecting allMockAssessments. Available assessments:", 
+          allMockAssessments.map(a => ({id: a.id, title: a.title}))
+        );
+
         const currentAssessment = allMockAssessments.find(a => a.id === assessmentIdNum);
         if (!currentAssessment) {
-          console.error(`[AssessmentResults] Assessment with ID ${assessmentIdNum} not found in allMockAssessments. Available IDs: ${allMockAssessments.map(a => a.id).join(', ')}`);
+          console.error(`[AssessmentResults] Assessment with ID ${assessmentIdNum} not found in allMockAssessments. Available IDs from import: ${allMockAssessments.map(a => a.id).join(', ')}`);
           throw new Error(`ID ${assessmentIdNum} のアセスメントが見つかりません。`);
         }
         
@@ -221,26 +160,29 @@ export default function AssessmentResults() {
         if (currentAssessment.questions && currentAssessment.questions.length > 0) {
           console.log(`[AssessmentResults] First 5 questions for assessment ${currentAssessment.id}:`);
           currentAssessment.questions.slice(0, 5).forEach(q => {
-            console.log(`  - QID ${q.id}: Text="${q.text.substring(0,30)}...", Category="${q.category}", MajorCategory="${q.majorCategory}"`);
+            if (q && q.text && q.id) {
+               console.log(`  - QID ${q.id}: Text="${q.text.substring(0,30)}...", Category="${q.category}", MajorCategory="${q.majorCategory}"`);
+            } else {
+               console.log(`  - Found an undefined or incomplete question object in assessment ${currentAssessment.id}`);
+            }
           });
         } else {
           console.log(`[AssessmentResults] No questions found for assessment ${currentAssessment.id}`);
         }
 
         const mockResult = generateMockResult(currentAssessment);
-        // Log the full mockResult to see all generated data
-        console.log(`[AssessmentResults] Generated full mockResult for ${currentAssessment.title}:`, JSON.parse(JSON.stringify(mockResult)));
+        console.log(`[AssessmentResults] Generated SIMPLIFIED mockResult for ${currentAssessment.title}:`, JSON.parse(JSON.stringify(mockResult)));
         setResult(mockResult);
 
       } catch (error) {
-        console.error("[AssessmentResults] アセスメント結果の取得に失敗しました", error);
+        console.error("[AssessmentResults] アセスメント結果の取得中にエラーが発生しました:", error);
         const errorMessage = error instanceof Error ? error.message : "結果データの取得に失敗しました。";
         toast({
           title: "エラー",
           description: errorMessage,
           variant: "destructive",
         });
-        setResult(null); // Ensure result is cleared on error
+        setResult(null); 
       } finally {
         setLoading(false);
       }
@@ -249,7 +191,7 @@ export default function AssessmentResults() {
     if (assessmentId) {
       fetchResult();
     } else {
-      console.error("[AssessmentResults] assessmentId is undefined in useEffect dependency. This should not happen if routing is correct.");
+      console.error("[AssessmentResults] assessmentId is undefined in useEffect. Routing might be incorrect.");
       toast({
         title: "エラー",
         description: "アセスメントIDが指定されていません。ルート設定を確認してください。",
@@ -257,7 +199,7 @@ export default function AssessmentResults() {
       });
       setLoading(false);
     }
-  }, [assessmentId, toast, navigate]);
+  }, [assessmentId, toast, navigate]); 
 
   const handlePrint = () => {
     window.print();
