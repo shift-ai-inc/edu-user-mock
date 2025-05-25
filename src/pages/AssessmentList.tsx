@@ -15,15 +15,11 @@ import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import {
   Search,
-  // Play, // No longer needed here
-  // RotateCcw, // No longer needed here
   Clock,
   ListChecks, // 質問数アイコン
   HelpCircle,
   ArrowUpDown,
   FileText, // アセスメントアイコン
-  // Eye, // No longer needed here
-  // Plus, // 新規作成アイコン (将来用)
   Filter, // フィルターアイコン (将来用)
 } from "lucide-react";
 import {
@@ -33,7 +29,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"; // Select for filtering
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"; // Tabs for filtering
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+  PaginationEllipsis,
+} from "@/components/ui/pagination"; // Pagination components
 
 // アセスメントのステータスタイプ
 type AssessmentStatus = "available" | "in-progress" | "completed" | "draft" | "archived";
@@ -120,7 +124,47 @@ const mockAssessmentList: AssessmentListItem[] = [
     updatedAt: "2024-01-15T00:00:00Z",
     tags: ["it", "basic"],
   },
+  {
+    id: 105,
+    title: "プロジェクトマネジメントスキル評価",
+    description: "プロジェクト管理能力を評価します。",
+    status: "available",
+    category: "skill",
+    estimatedTime: "約25分",
+    questionCount: 40,
+    createdAt: "2024-07-12T10:00:00Z",
+    updatedAt: "2024-07-18T14:30:00Z",
+    version: "1.1",
+    tags: ["project-management", "skill"],
+  },
+  {
+    id: 106,
+    title: "カスタマーサービス応対テスト",
+    description: "顧客対応スキルを測定します。",
+    status: "in-progress",
+    category: "skill",
+    estimatedTime: "約15分",
+    questionCount: 30,
+    createdAt: "2024-07-05T09:00:00Z",
+    updatedAt: "2024-07-15T11:00:00Z",
+    tags: ["customer-service", "communication"],
+  },
+  {
+    id: 107,
+    title: "データ分析基礎能力テスト",
+    description: "基本的なデータ分析能力を評価します。",
+    status: "completed",
+    category: "knowledge",
+    estimatedTime: "約30分",
+    questionCount: 60,
+    createdAt: "2024-06-20T16:00:00Z",
+    updatedAt: "2024-07-01T16:00:00Z",
+    version: "1.0",
+    tags: ["data-analysis", "basic"],
+  },
 ];
+
+const ITEMS_PER_PAGE = 5; // 1ページあたりのアイテム数
 
 export default function AssessmentList() {
   const navigate = useNavigate();
@@ -133,7 +177,8 @@ export default function AssessmentList() {
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [categoryFilter, setCategoryFilter] = useState<string>("all");
-  const [activeTab, setActiveTab] = useState("all"); // "all", "available", "in-progress", "completed"
+  const [currentPage, setCurrentPage] = useState(1);
+
 
   useEffect(() => {
     const fetchAssessments = async () => {
@@ -181,7 +226,7 @@ export default function AssessmentList() {
     fetchAssessments();
   }, [toast]);
 
-  const filteredAssessments = assessments
+  const sortedAndFilteredAssessments = assessments
     .filter((assessment) => {
       const matchesSearch =
         searchTerm === "" ||
@@ -192,20 +237,8 @@ export default function AssessmentList() {
 
       const matchesStatus = statusFilter === "all" || assessment.status === statusFilter;
       const matchesCategory = categoryFilter === "all" || assessment.category === categoryFilter;
-
-      let matchesTab = true;
-      if (activeTab === "available") {
-        matchesTab = assessment.status === "available";
-      } else if (activeTab === "in-progress") {
-        matchesTab = assessment.status === "in-progress";
-      } else if (activeTab === "completed") {
-        matchesTab = assessment.status === "completed";
-      } else if (activeTab === "manageable") { // 管理タブ (下書き、アーカイブなど)
-        matchesTab = assessment.status === "draft" || assessment.status === "archived";
-      }
-
-
-      return matchesSearch && matchesStatus && matchesCategory && matchesTab;
+      
+      return matchesSearch && matchesStatus && matchesCategory;
     })
     .sort((a, b) => {
       const valA = a[sortField];
@@ -224,18 +257,20 @@ export default function AssessmentList() {
         : String(valB).localeCompare(String(valA));
     });
 
-  // const handleStartOrResumeAssessment = (id: number) => { // This function can be removed if not used elsewhere
-  //   navigate(`/assessments/take/${id}`);
-  // };
+  const totalPages = Math.ceil(sortedAndFilteredAssessments.length / ITEMS_PER_PAGE);
+  const paginatedAssessments = sortedAndFilteredAssessments.slice(
+    (currentPage - 1) * ITEMS_PER_PAGE,
+    currentPage * ITEMS_PER_PAGE
+  );
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+  };
 
   const handleViewDetails = (id: number) => {
     navigate(`/assessments/detail/${id}`);
   };
   
-  // const handleCreateAssessment = () => {
-  //   navigate("/assessments/create"); // 将来用
-  // };
-
   const toggleSort = (field: keyof AssessmentListItem) => {
     if (field === sortField) {
       setSortDirection(sortDirection === "asc" ? "desc" : "asc");
@@ -243,6 +278,7 @@ export default function AssessmentList() {
       setSortField(field);
       setSortDirection("asc");
     }
+    setCurrentPage(1); // Reset to first page on sort
   };
 
   const getStatusBadgeStyle = (status: AssessmentStatus) => {
@@ -283,6 +319,61 @@ export default function AssessmentList() {
     return new Date(dateString).toLocaleDateString("ja-JP", { year: 'numeric', month: '2-digit', day: '2-digit' });
   };
 
+  // Reset to first page when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, statusFilter, categoryFilter]);
+
+  const renderPaginationItems = () => {
+    const items = [];
+    const maxPagesToShow = 5; // Max number of page links to show (excluding prev/next/ellipsis)
+    const halfMaxPages = Math.floor(maxPagesToShow / 2);
+
+    let startPage = Math.max(1, currentPage - halfMaxPages);
+    let endPage = Math.min(totalPages, currentPage + halfMaxPages);
+
+    if (currentPage - halfMaxPages < 1) {
+      endPage = Math.min(totalPages, maxPagesToShow);
+    }
+    if (currentPage + halfMaxPages > totalPages) {
+      startPage = Math.max(1, totalPages - maxPagesToShow + 1);
+    }
+    
+    if (startPage > 1) {
+      items.push(
+        <PaginationItem key="start-ellipsis">
+          <PaginationEllipsis />
+        </PaginationItem>
+      );
+    }
+
+    for (let i = startPage; i <= endPage; i++) {
+      items.push(
+        <PaginationItem key={i}>
+          <PaginationLink
+            href="#"
+            onClick={(e) => {
+              e.preventDefault();
+              handlePageChange(i);
+            }}
+            isActive={currentPage === i}
+          >
+            {i}
+          </PaginationLink>
+        </PaginationItem>
+      );
+    }
+
+    if (endPage < totalPages) {
+      items.push(
+        <PaginationItem key="end-ellipsis">
+          <PaginationEllipsis />
+        </PaginationItem>
+      );
+    }
+    return items;
+  };
+
 
   return (
     <div className="p-6 max-w-7xl mx-auto">
@@ -297,16 +388,6 @@ export default function AssessmentList() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-6">
-            <TabsList>
-              <TabsTrigger value="all">すべて</TabsTrigger>
-              <TabsTrigger value="available">受験可能</TabsTrigger>
-              <TabsTrigger value="in-progress">中断中</TabsTrigger>
-              <TabsTrigger value="completed">完了済</TabsTrigger>
-              {/* <TabsTrigger value="manageable">管理</TabsTrigger> */}
-            </TabsList>
-          </Tabs>
-
           <div className="flex flex-col md:flex-row gap-4 mb-6">
             <div className="flex-1 relative">
               <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
@@ -379,14 +460,13 @@ export default function AssessmentList() {
                         ステータス {sortField === "status" && <ArrowUpDown className="ml-2 h-3 w-3 inline" />}
                       </Button>
                     </TableHead>
-                    {/* <TableHead className="text-right">アクション</TableHead> */} {/* Removed Action Header */}
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {loading ? (
-                    <TableRow><TableCell colSpan={5} className="text-center py-8">読み込み中...</TableCell></TableRow> // Adjusted colSpan
-                  ) : filteredAssessments.length > 0 ? (
-                    filteredAssessments.map((assessment) => (
+                    <TableRow><TableCell colSpan={5} className="text-center py-8">読み込み中...</TableCell></TableRow>
+                  ) : paginatedAssessments.length > 0 ? (
+                    paginatedAssessments.map((assessment) => (
                       <TableRow 
                         key={assessment.id} 
                         onClick={() => handleViewDetails(assessment.id)}
@@ -421,44 +501,11 @@ export default function AssessmentList() {
                             {getStatusLabel(assessment.status)}
                           </Badge>
                         </TableCell>
-                        {/* Removed Action Cell Content */}
-                        {/* 
-                        <TableCell className="text-right">
-                          <div className="flex justify-end gap-1 sm:gap-2">
-                            {(assessment.status === "available" || assessment.status === "in-progress") && (
-                              <Button
-                                variant={assessment.status === "in-progress" ? "secondary" : "default"}
-                                size="sm"
-                                onClick={(e) => {
-                                  e.stopPropagation(); // Prevent row click
-                                  handleStartOrResumeAssessment(assessment.id);
-                                }}
-                                className="text-xs px-2 h-7 sm:text-sm sm:px-3 sm:h-8"
-                              >
-                                {assessment.status === "in-progress" ? <RotateCcw className="h-3 w-3 sm:mr-1" /> : <Play className="h-3 w-3 sm:mr-1" />}
-                                <span className="hidden sm:inline">{assessment.status === "in-progress" ? "再開" : "開始"}</span>
-                              </Button>
-                            )}
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={(e) => {
-                                e.stopPropagation(); // Prevent row click
-                                handleViewDetails(assessment.id);
-                              }}
-                              className="text-xs px-2 h-7 sm:text-sm sm:px-3 sm:h-8"
-                            >
-                              <Eye className="h-3 w-3 sm:mr-1" />
-                              <span className="hidden sm:inline">詳細</span>
-                            </Button>
-                          </div>
-                        </TableCell> 
-                        */}
                       </TableRow>
                     ))
                   ) : (
                     <TableRow>
-                      <TableCell colSpan={5} className="text-center py-8"> {/* Adjusted colSpan */}
+                      <TableCell colSpan={5} className="text-center py-8">
                         <div className="flex flex-col items-center justify-center">
                           <HelpCircle className="h-8 w-8 text-muted-foreground mb-2" />
                           <p className="text-lg font-medium">アセスメントが見つかりません</p>
@@ -473,6 +520,36 @@ export default function AssessmentList() {
               </Table>
             </CardContent>
           </Card>
+
+          {totalPages > 1 && (
+            <div className="mt-6 flex justify-center">
+              <Pagination>
+                <PaginationContent>
+                  <PaginationItem>
+                    <PaginationPrevious
+                      href="#"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        if (currentPage > 1) handlePageChange(currentPage - 1);
+                      }}
+                      className={currentPage === 1 ? "pointer-events-none opacity-50" : ""}
+                    />
+                  </PaginationItem>
+                  {renderPaginationItems()}
+                  <PaginationItem>
+                    <PaginationNext
+                      href="#"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        if (currentPage < totalPages) handlePageChange(currentPage + 1);
+                      }}
+                      className={currentPage === totalPages ? "pointer-events-none opacity-50" : ""}
+                    />
+                  </PaginationItem>
+                </PaginationContent>
+              </Pagination>
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>
